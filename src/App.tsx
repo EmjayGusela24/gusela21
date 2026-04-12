@@ -45,6 +45,96 @@ const ReturnButton = ({ onClick }: { onClick: () => void }) => (
   </button>
 );
 
+// --- Professional Footer Component ---
+const Footer = () => (
+  <footer style={{ 
+    position: "relative", 
+    zIndex: 1, 
+    marginTop: "auto", 
+    width: "100%",
+    backgroundColor: "#2D3748", 
+    color: "#E2E8F0",
+    fontFamily: "system-ui, -apple-system, sans-serif"
+  }}>
+    
+    {/* Top Footer Section: 3 Columns */}
+    <div style={{
+      display: "flex",
+      justifyContent: "space-between",
+      flexWrap: "wrap",
+      padding: "48px 10%",
+      gap: "32px",
+      borderBottom: "1px solid #4A5568"
+    }}>
+      
+      {/* Column 1: Contact Info */}
+      <div style={{ flex: "1", minWidth: "200px" }}>
+        <h4 style={{ color: "white", marginBottom: "16px", fontSize: "16px", fontWeight: 600 }}>Contact Info</h4>
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px", fontSize: "13px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span className="material-symbols-outlined" style={{ fontSize: "18px", color: "#A0AEC0" }}>mail</span>
+            <a href="mailto:elections@yourschool.edu" style={{ color: "#E2E8F0", textDecoration: "none" }}>electionscommittee@gmail.com</a>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span className="material-symbols-outlined" style={{ fontSize: "18px", color: "#A0AEC0" }}>call</span>
+            <span>Office Phone: (808) 928-7783</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span className="material-symbols-outlined" style={{ fontSize: "18px", color: "#A0AEC0" }}>location_on</span>
+            <span>Student Affairs Office, Room 101</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Column 2: Navigation / Important Links */}
+      <div style={{ flex: "1", minWidth: "200px" }}>
+        <h4 style={{ color: "white", marginBottom: "16px", fontSize: "16px", fontWeight: 600 }}>System Navigation</h4>
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px", fontSize: "13px" }}>
+          <a href="#about" style={{ color: "#E2E8F0", textDecoration: "none", transition: "color 0.2s" }}>About Election Process</a>
+          <a href="#rules" style={{ color: "#E2E8F0", textDecoration: "none", transition: "color 0.2s" }}>Official Voting Rules</a>
+          <a href="#privacy" style={{ color: "#E2E8F0", textDecoration: "none", transition: "color 0.2s" }}>Privacy & Data Policy</a>
+          <a href="#terms" style={{ color: "#E2E8F0", textDecoration: "none", transition: "color 0.2s" }}>Terms of Service</a>
+        </div>
+      </div>
+
+      {/* Column 3: System Description */}
+      <div style={{ flex: "1", minWidth: "250px" }}>
+        <h4 style={{ color: "white", marginBottom: "16px", fontSize: "16px", fontWeight: 600 }}>Student Voting System</h4>
+        <p style={{ fontSize: "13px", lineHeight: "1.6", color: "#A0AEC0", marginBottom: "16px" }}>
+          A secure, encrypted electronic ballot system designed to ensure fair, transparent, and accessible student government elections. Your vote remains completely confidential.
+        </p>
+        <a href="#help" style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "var(--primary-blue, #63b3ed)", fontSize: "13px", textDecoration: "none", fontWeight: 500 }}>
+          <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>help</span>
+          Visit Help Center
+        </a>
+      </div>
+      
+    </div>
+
+    {/* Bottom Footer Section: Copyright */}
+    <div style={{ 
+      padding: "24px 10%", 
+      display: "flex", 
+      justifyContent: "space-between", 
+      alignItems: "center",
+      flexWrap: "wrap",
+      fontSize: "12px",
+      color: "#A0AEC0",
+      gap: "16px"
+    }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+        <span style={{ color: "white", fontWeight: 500 }}>© {new Date().getFullYear()} Student Government Association.</span>
+        <span>All rights reserved. Unauthorized access is prohibited.</span>
+      </div>
+      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+        <span>Platform by Dummy Platform</span>
+        <span className="material-symbols-outlined" style={{ fontSize: "16px", color: "var(--accent-teal, #38b2ac)" }}>verified_user</span>
+      </div>
+    </div>
+
+  </footer>
+);
+
 // --- Main Screens ---
 
 const AuthForm: React.FC<{ setPage: (p: Page) => void; setCurrentUser: (u: User) => void }> = ({ setPage, setCurrentUser }) => {
@@ -275,7 +365,6 @@ const AdminSetup: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) => {
 
   return (
     <div className="screen-content content-max-width">
-      {/* Header Area */}
       <div className="flex-between" style={{ marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
         <div>
           <h1>Admin Dashboard</h1>
@@ -287,102 +376,71 @@ const AdminSetup: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) => {
         </div>
       </div>
       
-      {/* --- NEW SPLIT LAYOUT --- */}
-      <div className="admin-split-layout">
+      <div className="status-card" style={{ marginBottom: "24px" }}>
+        <h2 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span className="material-symbols-outlined icon-box-light" style={{ width: "32px", height: "32px", fontSize: "18px" }}>{editingId ? "edit" : "person_add"}</span>
+          {editingId ? "Edit Candidate" : "Add New Candidate"}
+        </h2>
         
-        {/* LEFT SECTION: Current Candidates (Enlarged Cards) */}
-        <div className="admin-split-left">
-          <div className="card-box" style={{ background: "var(--bg-main)", minHeight: "100%" }}>
-            <h3 style={{ fontSize: "18px", marginBottom: "16px" }}>Current Candidates</h3>
-            
-            {candidates.length === 0 ? (
-              <p className="mt-1" style={{ color: "var(--text-muted)", fontSize: "13px" }}>No candidates added yet.</p>
-            ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "16px" }}>
-                {candidates.map(c => (
-                  <div key={c.id} className="candidate-card" style={{ flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-                    
-                    {/* Enlarged Avatar */}
-                    <img 
-                      src={c.image_url || `https://ui-avatars.com/api/?name=${c.name}&background=E8F0FE&color=0B1736`} 
-                      alt={c.name} 
-                      className="candidate-avatar" 
-                      style={{ width: "120px", height: "120px", marginBottom: "8px", objectFit: "cover" }} 
-                    />
-                    
-                    <div style={{ width: "100%" }}>
-                      <div style={{ fontWeight: 700, fontSize: "16px" }}>{c.name}</div>
-                      <span className="badge-dark-teal">{c.position}</span>
-                      
-                      {/* Campaign Text block */}
-                      {c.campaign_text && (
-                        <p className="mt-4 text-left" style={{ fontSize: "12px", whiteSpace: "pre-wrap", background: "var(--bg-gray)", padding: "10px", borderRadius: "6px" }}>
-                          {c.campaign_text}
-                        </p>
-                      )}
-                    </div>
-                    
-                    <button className="btn-light-blue mt-4" onClick={() => editCandidate(c)} style={{ width: "100%" }}>
-                      Edit Candidate
-                    </button>
-                  </div>
-                ))}
-              </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "16px" }}>
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+            <input placeholder="Candidate Name" value={candidateForm.name} onChange={e => setCandidateForm({...candidateForm, name: e.target.value})} style={{ flex: 1, minWidth: "200px" }} />
+            <select value={candidateForm.position} onChange={e => setCandidateForm({...candidateForm, position: e.target.value})} style={{ padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "13px", minWidth: "200px" }}>
+              {POSITIONS.map(pos => <option key={pos} value={pos}>{pos}</option>)}
+            </select>
+          </div>
+          
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <label style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-muted)" }}>Upload Candidate Photo</label>
+            <input 
+              id="photo-upload"
+              type="file" 
+              accept="image/png, image/jpeg, image/jpg" 
+              onChange={handleFileChange}
+              style={{ padding: "8px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "13px" }}
+            />
+            {candidateForm.image_url && !imageFile && (
+               <span style={{ fontSize: "11px", color: "var(--primary-blue)" }}>Current image exists. Uploading a new one will replace it.</span>
+            )}
+          </div>
+
+          <textarea 
+            placeholder="Campaign Platform / Biography (Optional)" 
+            value={candidateForm.campaign_text} 
+            onChange={e => setCandidateForm({...candidateForm, campaign_text: e.target.value})}
+            style={{ padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "13px", minHeight: "80px", fontFamily: "inherit" }}
+          />
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button className="btn-primary" onClick={saveCandidate} disabled={loading} style={{ width: "auto", padding: "12px 24px" }}>
+              {loading ? "Saving..." : (editingId ? "Update Candidate" : "Save Candidate")}
+            </button>
+            {editingId && (
+              <button className="btn-outline-wide" onClick={cancelEdit} style={{ width: "auto", padding: "12px 24px" }}>Cancel Edit</button>
             )}
           </div>
         </div>
+      </div>
 
-        {/* RIGHT SECTION: Admin Dashboard / Setup Form */}
-        <div className="admin-split-right">
-          <div className="status-card" style={{ margin: 0 }}>
-            <h2 style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "16px" }}>
-              <span className="material-symbols-outlined icon-box-light" style={{ width: "32px", height: "32px", fontSize: "18px" }}>
-                {editingId ? "edit" : "person_add"}
-              </span>
-              {editingId ? "Edit Candidate" : "Add New Candidate"}
-            </h2>
-            
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "16px" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                <input placeholder="Candidate Name" value={candidateForm.name} onChange={e => setCandidateForm({...candidateForm, name: e.target.value})} style={{ width: "100%" }} />
-                <select value={candidateForm.position} onChange={e => setCandidateForm({...candidateForm, position: e.target.value})} style={{ padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "13px", width: "100%" }}>
-                  {POSITIONS.map(pos => <option key={pos} value={pos}>{pos}</option>)}
-                </select>
+      <div className="card-box" style={{ background: "var(--bg-main)" }}>
+        <h3>Current Candidates</h3>
+        {candidates.length === 0 ? (
+          <p className="mt-1" style={{ color: "var(--text-muted)", fontSize: "13px" }}>No candidates added yet.</p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "16px" }}>
+            {candidates.map(c => (
+              <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px", border: "1px solid var(--border-light)", borderRadius: "8px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <img src={c.image_url || `https://ui-avatars.com/api/?name=${c.name}&background=E8F0FE&color=0B1736`} alt={c.name} style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} />
+                  <div>
+                    <div style={{ fontWeight: 600 }}>{c.name}</div>
+                    <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>{c.position}</div>
+                  </div>
+                </div>
+                <button className="btn-light-blue" onClick={() => editCandidate(c)} style={{ width: "auto", padding: "6px 12px", fontSize: "12px" }}>Edit</button>
               </div>
-              
-              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                <label style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-muted)" }}>Upload Candidate Photo</label>
-                <input 
-                  id="photo-upload"
-                  type="file" 
-                  accept="image/png, image/jpeg, image/jpg" 
-                  onChange={handleFileChange}
-                  style={{ padding: "8px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "13px" }}
-                />
-                {candidateForm.image_url && !imageFile && (
-                   <span style={{ fontSize: "11px", color: "#0044CC" }}>Current image exists. Uploading a new one will replace it.</span>
-                )}
-              </div>
-
-              <textarea 
-                placeholder="Campaign Platform / Biography (Optional)" 
-                value={candidateForm.campaign_text} 
-                onChange={e => setCandidateForm({...candidateForm, campaign_text: e.target.value})}
-                style={{ padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "13px", minHeight: "120px", fontFamily: "inherit" }}
-              />
-              
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px" }}>
-                <button className="btn-primary" onClick={saveCandidate} disabled={loading}>
-                  {loading ? "Saving..." : (editingId ? "Update Candidate" : "Save Candidate")}
-                </button>
-                {editingId && (
-                  <button className="btn-outline-wide" onClick={cancelEdit}>Cancel Edit</button>
-                )}
-              </div>
-            </div>
+            ))}
           </div>
-        </div>
-
+        )}
       </div>
     </div>
   );
@@ -736,7 +794,7 @@ const App: React.FC = () => {
   if (loading) return <div className="flex-center" style={{ height: "100vh" }}>Loading System...</div>;
 
   return (
-    <div className="app-container">
+    <div className="app-container" style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       {page !== "login" && <Header currentUser={currentUser} handleLogout={handleLogout} />}
       
       {page === "login" && <AuthForm setPage={setPage} setCurrentUser={setCurrentUser} />}
@@ -745,6 +803,9 @@ const App: React.FC = () => {
       {page === "ballot" && currentUser && !('isAdmin' in currentUser) && <BallotPage setPage={setPage} currentUser={currentUser as Student} />}
       {page === "confirm" && <ConfirmationScreen setPage={setPage} />}
       {page === "results" && <ResultsDashboard currentUser={currentUser} setPage={setPage} />}
+
+      {/* Render the new footer at the bottom of the app container */}
+      <Footer />
     </div>
   );
 };
