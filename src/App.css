@@ -19,14 +19,46 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
 
-body { background-color: var(--bg-gray); color: var(--text-main); min-height: 100vh; }
+/* FIX 1: Force the root wrappers to fill the entire screen */
+html, body, #root { 
+  width: 100%; 
+  min-height: 100vh; 
+  margin: 0; 
+  padding: 0;
+  background-color: var(--bg-gray); 
+  color: var(--text-main); 
+  display: flex; 
+  flex-direction: column; 
+}
 
 /* Ensure icons render correctly */
 .material-symbols-outlined { font-family: 'Material Symbols Outlined', sans-serif !important; font-style: normal; }
 
 /* --- Fully Responsive App Container --- */
-.app-container { width: 100%; min-height: 100vh; display: flex; flex-direction: column; background-color: var(--bg-main); }
-.screen-content { flex: 1; padding: 24px 20px; padding-bottom: 100px; animation: fadeIn 0.4s ease forwards; background-color: var(--bg-main); }
+.app-container { width: 100%; flex: 1; display: flex; flex-direction: column; background-color: var(--bg-main); }
+
+/* FIX 2: Make screen-content a flex column so children can be centered */
+.screen-content { 
+  flex: 1; 
+  padding: 24px 20px; 
+  padding-bottom: 100px; 
+  animation: fadeIn 0.4s ease forwards; 
+  background-color: var(--bg-main); 
+  display: flex;
+  flex-direction: column;
+}
+
+/* FIX 3: Wrapper to keep the login box centered and normal-sized */
+.auth-wrapper {
+  width: 100%;
+  max-width: 400px;
+  margin: auto; /* Pushes the box to the absolute dead center */
+  background: var(--bg-main);
+  padding: 30px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+}
+
 .content-max-width { max-width: 800px; margin: 0 auto; width: 100%; }
 
 .flex-center { display: flex; align-items: center; justify-content: center; }
@@ -60,13 +92,13 @@ p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
   background: var(--bg-main); 
   border-bottom: 1px solid var(--border-light); 
   box-shadow: 0 2px 10px rgba(0,0,0,0.02); 
-  gap: 16px; /* Keeps left/right items from touching the middle nav */
+  gap: 16px; 
 }
 
 .logo-area { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; color: var(--primary-navy); }
 .logo-icon { font-size: 20px !important; }
 
-.desktop-nav { display: none; /* Hidden on mobile */ }
+.desktop-nav { display: none; }
 .badge-light-blue { background: var(--accent-blue); color: #0044CC; font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.04em; }
 
 /* --- Inputs & Buttons --- */
@@ -155,15 +187,11 @@ input:focus { outline: none; border-color: var(--primary-navy); box-shadow: 0 0 
     gap: 8px; 
     align-items: center; 
     justify-content: center; 
-    flex: 1; /* Takes up middle space dynamically */
+    flex: 1; 
   }
 
-  /* Stop the logo and badge from shrinking when the window gets smaller */
-  .logo-area, .header-right {
-    flex-shrink: 0; 
-  }
+  .logo-area, .header-right { flex-shrink: 0; }
   
-  /* Ensure icon and text are cleanly separated side-by-side */
   .desktop-nav-item { 
     background: transparent; 
     border: none; 
@@ -176,10 +204,10 @@ input:focus { outline: none; border-color: var(--primary-navy); box-shadow: 0 0 
     display: flex; 
     align-items: center; 
     justify-content: center; 
-    gap: 8px; /* Forces space between icon and text */
+    gap: 8px; 
     transition: 0.2s; 
     flex-direction: row; 
-    white-space: nowrap; /* Prevents text from wrapping/squishing */
+    white-space: nowrap; 
   }
   
   .desktop-nav-item .nav-icon { font-size: 18px !important; }
@@ -188,8 +216,7 @@ input:focus { outline: none; border-color: var(--primary-navy); box-shadow: 0 0 
   
   /* Adjust main container */
   .screen-content { padding: 40px; }
-  .auth-wrapper { max-width: 400px; width: 100%; margin: 0 auto; }
-  .content-max-width { max-width: 800px; }
+  .auth-wrapper { margin: auto; } /* Keeps it centered on desktop */
   
   /* Horizontal flow for specific elements */
   .results-toolbar { margin-top: 24px; margin-bottom: 24px; }
