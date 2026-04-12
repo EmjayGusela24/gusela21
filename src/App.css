@@ -129,6 +129,18 @@ input:focus { outline: none; border-color: var(--primary-navy); box-shadow: 0 0 
 .stat-box.light { background: var(--bg-main); border: 1px solid var(--border-light); }
 .hash-text { font-size: 10px; font-weight: 600; color: var(--text-light); word-break: break-all; margin-top: 6px; }
 
+/* --- Admin Split Layout (Base / Mobile) --- */
+.admin-split-layout {
+  display: flex;
+  flex-direction: column; /* Stacked on mobile */
+  gap: 24px;
+  width: 100%;
+  max-width: 1200px; /* Wider max-width to accommodate both columns */
+  margin: 0 auto;
+}
+.admin-split-left { flex: 1; }
+.admin-split-right { flex: 1; }
+
 /* --- Ballot & Candidates --- */
 .election-item { background: var(--bg-main); border: 1px solid var(--border-light); border-radius: 12px; padding: 20px; margin-bottom: 12px; }
 .election-header { display: flex; gap: 16px; margin-bottom: 16px; align-items: center; }
@@ -223,4 +235,20 @@ input:focus { outline: none; border-color: var(--primary-navy); box-shadow: 0 0 
   .btn-outline-wide { width: auto; padding: 10px 20px; }
   .button-stack { flex-direction: row; justify-content: center; }
   .button-stack button { width: auto; padding: 12px 24px; }
+
+  /* --- Admin Split Layout (Desktop) --- */
+  .admin-split-layout { 
+    flex-direction: row; /* Side-by-side on desktop */
+    align-items: flex-start; /* Prevents the right column from stretching down */
+  }
+  
+  .admin-split-left { 
+    flex: 2; /* Takes up roughly 66% of the screen */
+  }
+  
+  .admin-split-right { 
+    flex: 1; /* Takes up roughly 33% of the screen */
+    position: sticky; /* Optional: Keeps the admin tools on screen while scrolling down a long list of candidates */
+    top: 80px; 
+  }
 }

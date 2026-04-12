@@ -4,10 +4,16 @@ import "./App.css";
 
 // --- Types ---
 type Student = { id: string; name: string; password?: string; grade: string; has_voted: boolean };
-type Candidate = { id: string; position: string; name: string; votes?: number };
+type Candidate = { id: string; position: string; name: string; votes?: number; image_url?: string; campaign_text?: string };
 type Admin = { name: string; id: string; isAdmin: boolean };
 type User = Student | Admin;
 type Page = "login" | "admin_setup" | "ballot" | "confirm" | "results" | "admin_voters";
+
+const POSITIONS = [
+  "President", "Vice President", "Secretary", "Treasurer", "PIO", "Sgt. At Arms",
+  "Gr 7 Representative", "Gr 8 Representative", "Gr 9 Representative", 
+  "Gr 10 Representative", "Gr 11 Representative", "Gr 12 Representative"
+];
 
 // --- Shared UI Components ---
 const Header = ({ currentUser, handleLogout }: { currentUser: User | null; handleLogout: () => void }) => (
@@ -55,7 +61,6 @@ const AuthForm: React.FC<{ setPage: (p: Page) => void; setCurrentUser: (u: User)
     const { identifier, name, password, grade } = form;
 
     // --- HIDDEN ADMIN LOGIN TRIGGER ---
-    // If exact admin credentials are used during login, bypass standard validation
     if (isLogin && identifier === "admin@gmail.com" && password === "admin123") {
       const adminUser: Admin = { name: "System Admin", id: "admin", isAdmin: true };
       localStorage.setItem("currentUser", JSON.stringify(adminUser));
@@ -137,7 +142,6 @@ const AuthForm: React.FC<{ setPage: (p: Page) => void; setCurrentUser: (u: User)
         {error && <div style={{ color: "#D92D20", background: "#FEF3F2", padding: "12px", borderRadius: "8px", fontSize: "12px", marginBottom: "16px", fontWeight: 600 }}>{error}</div>}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
-          {/* The input visually only asks for LRN, but accepts the admin email silently */}
           <input name="identifier" placeholder="12-Digit LRN (Voter ID)" value={form.identifier} onChange={handleChange} />
           
           {!isLogin && (
@@ -165,29 +169,113 @@ const AuthForm: React.FC<{ setPage: (p: Page) => void; setCurrentUser: (u: User)
 };
 
 const AdminSetup: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) => {
-  const [candidateForm, setCandidateForm] = useState({ name: "", position: "President" });
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [candidateForm, setCandidateForm] = useState({ name: "", position: "President", image_url: "", campaign_text: "" });
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const addCandidate = async () => {
+  const fetchCandidates = async () => {
+    const { data } = await supabase.from('candidates').select('*').order('position');
+    if (data) setCandidates(data);
+  };
+
+  useEffect(() => {
+    fetchCandidates();
+  }, []);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setImageFile(e.target.files[0]);
+    }
+  };
+
+  const saveCandidate = async () => {
     if (!candidateForm.name) return alert("Enter candidate name");
     setLoading(true);
     
-    const { error } = await supabase.from('candidates').insert([{ 
-      name: candidateForm.name, 
-      position: candidateForm.position 
-    }]);
+    let finalImageUrl = candidateForm.image_url;
 
-    if (error) {
-      alert("Error adding candidate: " + error.message);
-    } else {
-      alert("Candidate defined successfully.");
-      setCandidateForm({ name: "", position: "President" });
+    // --- NEW: Handle Image Upload ---
+    if (imageFile) {
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('candidate-photos')
+        .upload(fileName, imageFile);
+
+      if (uploadError) {
+        alert("Error uploading image: " + uploadError.message);
+        setLoading(false);
+        return;
+      }
+
+      // Get the public URL after successful upload
+      const { data } = supabase.storage
+        .from('candidate-photos')
+        .getPublicUrl(fileName);
+        
+      finalImageUrl = data.publicUrl;
     }
+
+    if (editingId) {
+      // Update existing
+      const { error } = await supabase.from('candidates').update({ 
+        name: candidateForm.name, 
+        position: candidateForm.position,
+        image_url: finalImageUrl,
+        campaign_text: candidateForm.campaign_text
+      }).eq('id', editingId);
+
+      if (error) alert("Error updating candidate: " + error.message);
+      else alert("Candidate updated successfully.");
+    } else {
+      // Insert new
+      const { error } = await supabase.from('candidates').insert([{ 
+        name: candidateForm.name, 
+        position: candidateForm.position,
+        image_url: finalImageUrl,
+        campaign_text: candidateForm.campaign_text
+      }]);
+
+      if (error) alert("Error adding candidate: " + error.message);
+      else alert("Candidate added successfully.");
+    }
+
+    // Reset Form
+    setCandidateForm({ name: "", position: "President", image_url: "", campaign_text: "" });
+    setImageFile(null);
+    setEditingId(null);
+    
+    // Reset the file input visually
+    const fileInput = document.getElementById('photo-upload') as HTMLInputElement;
+    if (fileInput) fileInput.value = "";
+
+    fetchCandidates();
     setLoading(false);
+  };
+
+  const editCandidate = (c: Candidate) => {
+    setEditingId(c.id);
+    setCandidateForm({
+      name: c.name,
+      position: c.position,
+      image_url: c.image_url || "",
+      campaign_text: c.campaign_text || ""
+    });
+    setImageFile(null); // Clear any pending uploads when editing
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setCandidateForm({ name: "", position: "President", image_url: "", campaign_text: "" });
+    setImageFile(null);
   };
 
   return (
     <div className="screen-content content-max-width">
+      {/* Header Area */}
       <div className="flex-between" style={{ marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
         <div>
           <h1>Admin Dashboard</h1>
@@ -199,25 +287,102 @@ const AdminSetup: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) => {
         </div>
       </div>
       
-      <div className="status-card">
-        <h2 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span className="material-symbols-outlined icon-box-light" style={{ width: "32px", height: "32px", fontSize: "18px" }}>person_add</span>
-          Define Candidates
-        </h2>
-        <p className="mt-1 mb-3">Add candidates for specific election positions below.</p>
+      {/* --- NEW SPLIT LAYOUT --- */}
+      <div className="admin-split-layout">
         
-        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginTop: "16px" }}>
-          <input placeholder="Candidate Name" value={candidateForm.name} onChange={e => setCandidateForm({...candidateForm, name: e.target.value})} style={{ flex: 1, minWidth: "200px" }} />
-          <select value={candidateForm.position} onChange={e => setCandidateForm({...candidateForm, position: e.target.value})} style={{ padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "13px" }}>
-            <option value="President">President</option>
-            <option value="Vice President">Vice President</option>
-            <option value="Secretary">Secretary</option>
-            <option value="Treasurer">Treasurer</option>
-          </select>
-          <button className="btn-primary" onClick={addCandidate} disabled={loading} style={{ width: "auto", padding: "12px 24px" }}>
-            {loading ? "Saving..." : "Save Candidate"}
-          </button>
+        {/* LEFT SECTION: Current Candidates (Enlarged Cards) */}
+        <div className="admin-split-left">
+          <div className="card-box" style={{ background: "var(--bg-main)", minHeight: "100%" }}>
+            <h3 style={{ fontSize: "18px", marginBottom: "16px" }}>Current Candidates</h3>
+            
+            {candidates.length === 0 ? (
+              <p className="mt-1" style={{ color: "var(--text-muted)", fontSize: "13px" }}>No candidates added yet.</p>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "16px" }}>
+                {candidates.map(c => (
+                  <div key={c.id} className="candidate-card" style={{ flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                    
+                    {/* Enlarged Avatar */}
+                    <img 
+                      src={c.image_url || `https://ui-avatars.com/api/?name=${c.name}&background=E8F0FE&color=0B1736`} 
+                      alt={c.name} 
+                      className="candidate-avatar" 
+                      style={{ width: "120px", height: "120px", marginBottom: "8px", objectFit: "cover" }} 
+                    />
+                    
+                    <div style={{ width: "100%" }}>
+                      <div style={{ fontWeight: 700, fontSize: "16px" }}>{c.name}</div>
+                      <span className="badge-dark-teal">{c.position}</span>
+                      
+                      {/* Campaign Text block */}
+                      {c.campaign_text && (
+                        <p className="mt-4 text-left" style={{ fontSize: "12px", whiteSpace: "pre-wrap", background: "var(--bg-gray)", padding: "10px", borderRadius: "6px" }}>
+                          {c.campaign_text}
+                        </p>
+                      )}
+                    </div>
+                    
+                    <button className="btn-light-blue mt-4" onClick={() => editCandidate(c)} style={{ width: "100%" }}>
+                      Edit Candidate
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* RIGHT SECTION: Admin Dashboard / Setup Form */}
+        <div className="admin-split-right">
+          <div className="status-card" style={{ margin: 0 }}>
+            <h2 style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "16px" }}>
+              <span className="material-symbols-outlined icon-box-light" style={{ width: "32px", height: "32px", fontSize: "18px" }}>
+                {editingId ? "edit" : "person_add"}
+              </span>
+              {editingId ? "Edit Candidate" : "Add New Candidate"}
+            </h2>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "16px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <input placeholder="Candidate Name" value={candidateForm.name} onChange={e => setCandidateForm({...candidateForm, name: e.target.value})} style={{ width: "100%" }} />
+                <select value={candidateForm.position} onChange={e => setCandidateForm({...candidateForm, position: e.target.value})} style={{ padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "13px", width: "100%" }}>
+                  {POSITIONS.map(pos => <option key={pos} value={pos}>{pos}</option>)}
+                </select>
+              </div>
+              
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                <label style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-muted)" }}>Upload Candidate Photo</label>
+                <input 
+                  id="photo-upload"
+                  type="file" 
+                  accept="image/png, image/jpeg, image/jpg" 
+                  onChange={handleFileChange}
+                  style={{ padding: "8px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "13px" }}
+                />
+                {candidateForm.image_url && !imageFile && (
+                   <span style={{ fontSize: "11px", color: "#0044CC" }}>Current image exists. Uploading a new one will replace it.</span>
+                )}
+              </div>
+
+              <textarea 
+                placeholder="Campaign Platform / Biography (Optional)" 
+                value={candidateForm.campaign_text} 
+                onChange={e => setCandidateForm({...candidateForm, campaign_text: e.target.value})}
+                style={{ padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "13px", minHeight: "120px", fontFamily: "inherit" }}
+              />
+              
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px" }}>
+                <button className="btn-primary" onClick={saveCandidate} disabled={loading}>
+                  {loading ? "Saving..." : (editingId ? "Update Candidate" : "Save Candidate")}
+                </button>
+                {editingId && (
+                  <button className="btn-outline-wide" onClick={cancelEdit}>Cancel Edit</button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );
@@ -292,6 +457,7 @@ const AdminVotersList: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) 
 const BallotPage: React.FC<{ setPage: (p: Page) => void; currentUser: Student }> = ({ setPage, currentUser }) => {
   const [selectedCandidate, setSelectedCandidate] = useState<string>("");
   const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [expandedCampaign, setExpandedCampaign] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -308,7 +474,6 @@ const BallotPage: React.FC<{ setPage: (p: Page) => void; currentUser: Student }>
     if (!selectedCandidate) return setError("Validation Error: You must select a candidate before submitting.");
     setLoading(true);
 
-    // 1. Insert Vote
     const { error: voteError } = await supabase.from('votes').insert([{ 
       student_id: currentUser.id, 
       candidate_id: selectedCandidate 
@@ -324,14 +489,17 @@ const BallotPage: React.FC<{ setPage: (p: Page) => void; currentUser: Student }>
       return;
     }
 
-    // 2. Update Student Status
     await supabase.from('students').update({ has_voted: true }).eq('id', currentUser.id);
     
-    // 3. Update Local Storage Session
     const updatedUser = { ...currentUser, has_voted: true };
     localStorage.setItem("currentUser", JSON.stringify(updatedUser));
     
     setPage("confirm");
+  };
+
+  const toggleCampaign = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation(); // Prevents the click from selecting the candidate
+    setExpandedCampaign(expandedCampaign === id ? null : id);
   };
 
   if (loading) return <div className="screen-content flex-center">Loading ballot...</div>;
@@ -350,18 +518,39 @@ const BallotPage: React.FC<{ setPage: (p: Page) => void; currentUser: Student }>
         {candidates.length === 0 ? <p className="text-center" style={{ padding: "40px" }}>No candidates defined by Admin yet.</p> : null}
         
         {candidates.map(c => (
-          <div key={c.id} onClick={() => setSelectedCandidate(c.id)} className={`candidate-card ${selectedCandidate === c.id ? "selected" : ""}`}>
-            <img src={`https://ui-avatars.com/api/?name=${c.name}&background=E8F0FE&color=0B1736`} alt={c.name} className="candidate-avatar" />
-            <div>
-              <h3>{c.name}</h3>
-              <span className="badge-dark-teal">{c.position}</span>
+          <div key={c.id} onClick={() => setSelectedCandidate(c.id)} className={`candidate-card ${selectedCandidate === c.id ? "selected" : ""}`} style={{ flexDirection: "column", alignItems: "stretch", gap: "16px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+              <img src={c.image_url || `https://ui-avatars.com/api/?name=${c.name}&background=E8F0FE&color=0B1736`} alt={c.name} className="candidate-avatar" style={{ objectFit: "cover" }} />
+              <div style={{ flex: 1 }}>
+                <h3>{c.name}</h3>
+                <span className="badge-dark-teal">{c.position}</span>
+              </div>
+              {selectedCandidate === c.id && <span className="material-symbols-outlined" style={{ color: "var(--primary-navy)" }}>check_circle</span>}
             </div>
-            {selectedCandidate === c.id && <span className="material-symbols-outlined" style={{ marginLeft: "auto", color: "var(--primary-navy)" }}>check_circle</span>}
+            
+            {c.campaign_text && (
+              <div style={{ borderTop: "1px solid var(--border-light)", paddingTop: "12px" }}>
+                <button 
+                  onClick={(e) => toggleCampaign(e, c.id)} 
+                  style={{ background: "none", border: "none", color: "var(--primary-blue)", fontSize: "12px", fontWeight: 600, cursor: "pointer", padding: 0, display: "flex", alignItems: "center" }}
+                >
+                  {expandedCampaign === c.id ? "Hide Campaign" : "View Campaign Platform"}
+                  <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>
+                    {expandedCampaign === c.id ? "expand_less" : "expand_more"}
+                  </span>
+                </button>
+                {expandedCampaign === c.id && (
+                  <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "8px", lineHeight: "1.5", whiteSpace: "pre-wrap" }}>
+                    {c.campaign_text}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>
 
-      <div className="button-stack">
+      <div className="button-stack" style={{ marginTop: "32px" }}>
         <button className="btn-primary" onClick={handleSubmit} disabled={loading}>Securely Submit Vote</button>
         <button className="btn-light-blue" onClick={() => setPage("results")}>View Live Results</button>
       </div>
@@ -410,7 +599,6 @@ const ResultsDashboard: React.FC<{ currentUser: User | null; setPage: (p: Page) 
 
   useEffect(() => {
     const fetchResults = async () => {
-      // Fetch all required data in parallel
       const [candidatesRes, votesRes, studentsRes] = await Promise.all([
         supabase.from('candidates').select('*'),
         supabase.from('votes').select('candidate_id'),
@@ -488,7 +676,7 @@ const ResultsDashboard: React.FC<{ currentUser: User | null; setPage: (p: Page) 
 
           return (
             <div key={r.candidate.id} className="result-item">
-              <img src={`https://ui-avatars.com/api/?name=${r.candidate.name}&background=E8F0FE&color=0B1736`} alt={r.candidate.name} className="result-avatar" />
+              <img src={r.candidate.image_url || `https://ui-avatars.com/api/?name=${r.candidate.name}&background=E8F0FE&color=0B1736`} alt={r.candidate.name} className="result-avatar" style={{ objectFit: "cover" }} />
               <div style={{ flex: 1 }}>
                 <div className="flex-between" style={{ marginBottom: "8px" }}>
                   <div>
@@ -524,7 +712,6 @@ const App: React.FC = () => {
           setCurrentUser(user);
           setPage("admin_setup");
         } else {
-          // Fetch latest student data to ensure has_voted is accurate
           const { data } = await supabase.from('students').select('*').eq('id', user.id).single();
           if (data) {
             setCurrentUser(data as Student);
