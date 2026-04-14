@@ -45,7 +45,7 @@ const ReturnButton = ({ onClick }: { onClick: () => void }) => (
   </button>
 );
 
-// --- Professional Footer Component ---
+// --- FULL Footer Component (Fixed TypeScript Error) ---
 const Footer = () => {
   const [activeContent, setActiveContent] = useState<string | null>(null);
   const [showInitialPrivacy, setShowInitialPrivacy] = useState(() => !localStorage.getItem('privacyAccepted'));
@@ -61,8 +61,8 @@ const Footer = () => {
       <h4>1. Information We Collect</h4>
       <p>To facilitate secure student elections, we collect and process the following personally identifiable information (PII):</p>
       <ul>
-        <li><strong>Identity Data:</strong> Legal name, Student Identification Number, and Institutional Email Address.</li>
-        <li><strong>Eligibility Data:</strong> Current academic standing, major, and enrollment status to verify voting eligibility.</li>
+        <li><strong>Identity Data:</strong> Legal name, Student Identification Number (LRN), and Institutional Email Address.</li>
+        <li><strong>Eligibility Data:</strong> Current academic standing, grade, and enrollment status to verify voting eligibility.</li>
         <li><strong>Technical Data:</strong> IP addresses, browser types, and access timestamps strictly for security and anti-fraud monitoring.</li>
       </ul>
 
@@ -78,20 +78,21 @@ const Footer = () => {
       <p>Our system employs end-to-end encryption. <strong>Your voting choices are permanently decoupled from your identity data upon submission.</strong> It is cryptographically impossible for system administrators, faculty, or candidates to associate your identity with the candidates you voted for.</p>
 
       <h4>4. Data Retention</h4>
-      <p>Identity verification logs are maintained only until the election results are officially certified by the independent faculty committee. Once certified (typically within 14 days of the election's end), all voter correlation data and technical access logs are permanently purged from our servers.</p>
+      <p>Identity verification logs are maintained only until the election results are officially certified. Once certified, all voter correlation data is permanently purged.</p>
 
       <h4>5. Third-Party Sharing</h4>
-      <p>We do not sell, rent, or share your personal data with any third parties, external organizations, or marketing entities under any circumstances.</p>
+      <p>We do not sell, rent, or share your personal data with any third parties.</p>
     </>
   );
 
-  const modalContent = {
+  // FIXED: Proper TypeScript typing to eliminate TS7053 error
+  const modalContent: Record<string, { title: string; body: React.ReactNode }> = {
     help: {
       title: "Help Center & FAQ",
       body: (
         <>
           <h4>How do I cast my vote?</h4>
-          <p>Navigate to the ballot page, select your preferred candidate, and click 'Securely Submit Vote'. You will receive a confirmation receipt.</p>
+          <p>Navigate to the ballot page, select your preferred candidate for each position, and click 'Securely Submit Vote'. You will receive a confirmation receipt.</p>
           <br/>
           <h4>I can't log in. What should I do?</h4>
           <p>Ensure you are using your correct 12-digit LRN and password. If you forgot your password, contact your school’s IT support or election committee.</p>
@@ -275,16 +276,16 @@ const Footer = () => {
         </div>
       )}
 
-      {/* Modal Content */}
+      {/* Main Modal Content */}
       {activeContent && !showInitialPrivacy && (
         <div className="modal-overlay" onClick={() => setActiveContent(null)}>
           <div className="modal-container" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>{modalContent[activeContent].title}</h3>
+              <h3>{modalContent[activeContent]?.title || "Information"}</h3>
               <button className="close-btn" onClick={() => setActiveContent(null)}>&times;</button>
             </div>
             <div className="modal-body">
-              {modalContent[activeContent].body}
+              {modalContent[activeContent]?.body || <p>Content not available.</p>}
             </div>
           </div>
         </div>
@@ -297,9 +298,7 @@ const Footer = () => {
             <div className="footer-list">
               <div className="contact-item">
                 <span className="material-symbols-outlined contact-icon">mail</span>
-                <a href="mailto:electionscommittee@gmail.com?subject=Student%20Voting%20Inquiry" className="nav-link">
-                  admin@gmail.com
-                </a>
+                <a href="mailto:admin@gmail.com" className="nav-link">admin@gmail.com</a>
               </div>
               <div className="contact-item">
                 <span className="material-symbols-outlined contact-icon">call</span>
@@ -354,8 +353,7 @@ const Footer = () => {
   );
 };
 
-// --- Main Screens ---
-
+// --- AuthForm ---
 const AuthForm: React.FC<{ setPage: (p: Page) => void; setCurrentUser: (u: User) => void }> = ({ setPage, setCurrentUser }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [form, setForm] = useState({ identifier: "", name: "", password: "", grade: "G7" });
@@ -475,6 +473,7 @@ const AuthForm: React.FC<{ setPage: (p: Page) => void; setCurrentUser: (u: User)
   );
 };
 
+// --- AdminSetup ---
 const AdminSetup: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) => {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -582,7 +581,7 @@ const AdminSetup: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) => {
       
       <div className="status-card" style={{ marginBottom: "24px" }}>
         <h2 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span className="material-symbols-outlined icon-box-light" style={{ width: "32px", height: "32px", fontSize: "18px" }}>{editingId ? "edit" : "person_add"}</span>
+          <span className="material-symbols-outlined" style={{ width: "32px", height: "32px", fontSize: "18px" }}>{editingId ? "edit" : "person_add"}</span>
           {editingId ? "Edit Candidate" : "Add New Candidate"}
         </h2>
         
@@ -603,9 +602,6 @@ const AdminSetup: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) => {
               onChange={handleFileChange}
               style={{ padding: "8px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "13px" }}
             />
-            {candidateForm.image_url && !imageFile && (
-               <span style={{ fontSize: "11px", color: "var(--primary-blue)" }}>Current image exists. Uploading a new one will replace it.</span>
-            )}
           </div>
 
           <textarea 
@@ -650,6 +646,7 @@ const AdminSetup: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) => {
   );
 };
 
+// --- AdminVotersList ---
 const AdminVotersList: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
@@ -702,7 +699,7 @@ const AdminVotersList: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) 
                   </td>
                   <td style={{ padding: "14px 8px" }}>
                     {s.has_voted 
-                      ? <span className="badge-solid-teal" style={{ background: "var(--accent-teal)" }}>VOTED</span> 
+                      ? <span style={{ background: "var(--accent-teal)", color: "white", padding: "4px 10px", borderRadius: "20px", fontSize: "12px" }}>VOTED</span> 
                       : <span style={{ color: "var(--text-muted)", fontSize: "11px", fontWeight: 700, letterSpacing: "0.05em" }}>PENDING</span>
                     }
                   </td>
@@ -716,12 +713,12 @@ const AdminVotersList: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) 
   );
 };
 
-// --- Updated BallotPage with bigger boxes + tap-to-enlarge photo ---
+// --- BallotPage with bigger boxes + tap-to-enlarge photo ---
 const BallotPage: React.FC<{ setPage: (p: Page) => void; currentUser: Student }> = ({ setPage, currentUser }) => {
   const [selectedCandidate, setSelectedCandidate] = useState<string>("");
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [expandedCampaign, setExpandedCampaign] = useState<string | null>(null);
-  const [enlargedPhoto, setEnlargedPhoto] = useState<string | null>(null); // New: photo enlargement
+  const [enlargedPhoto, setEnlargedPhoto] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -787,14 +784,13 @@ const BallotPage: React.FC<{ setPage: (p: Page) => void; currentUser: Student }>
             onClick={() => setSelectedCandidate(c.id)} 
             className={`candidate-card ${selectedCandidate === c.id ? "selected" : ""}`}
           >
-            {/* Bigger centered photo */}
             <div style={{ display: "flex", justifyContent: "center" }}>
               <img 
                 src={c.image_url || `https://ui-avatars.com/api/?name=${c.name}&background=E8F0FE&color=0B1736`} 
                 alt={c.name} 
                 className="candidate-avatar"
                 onClick={(e) => {
-                  e.stopPropagation(); // Prevent selecting the card when tapping photo
+                  e.stopPropagation();
                   setEnlargedPhoto(c.image_url || `https://ui-avatars.com/api/?name=${c.name}&background=E8F0FE&color=0B1736`);
                 }}
               />
