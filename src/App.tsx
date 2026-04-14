@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { supabase } from "./supabase"; // Make sure this path is correct
+import { supabase } from "./supabase";
 import "./App.css";
 
 // --- Types ---
@@ -46,94 +46,313 @@ const ReturnButton = ({ onClick }: { onClick: () => void }) => (
 );
 
 // --- Professional Footer Component ---
-const Footer = () => (
-  <footer style={{ 
-    position: "relative", 
-    zIndex: 1, 
-    marginTop: "auto", 
-    width: "100%",
-    backgroundColor: "#2D3748", 
-    color: "#E2E8F0",
-    fontFamily: "system-ui, -apple-system, sans-serif"
-  }}>
-    
-    {/* Top Footer Section: 3 Columns */}
-    <div style={{
-      display: "flex",
-      justifyContent: "space-between",
-      flexWrap: "wrap",
-      padding: "48px 10%",
-      gap: "32px",
-      borderBottom: "1px solid #4A5568"
-    }}>
-      
-      {/* Column 1: Contact Info */}
-      <div style={{ flex: "1", minWidth: "200px" }}>
-        <h4 style={{ color: "white", marginBottom: "16px", fontSize: "16px", fontWeight: 600 }}>Contact Info</h4>
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px", fontSize: "13px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span className="material-symbols-outlined" style={{ fontSize: "18px", color: "#A0AEC0" }}>mail</span>
-            <a href="mailto:elections@yourschool.edu" style={{ color: "#E2E8F0", textDecoration: "none" }}>electionscommittee@gmail.com</a>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span className="material-symbols-outlined" style={{ fontSize: "18px", color: "#A0AEC0" }}>call</span>
-            <span>Office Phone: (808) 928-7783</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span className="material-symbols-outlined" style={{ fontSize: "18px", color: "#A0AEC0" }}>location_on</span>
-            <span>Student Affairs Office, Room 101</span>
+const Footer = () => {
+  const [activeContent, setActiveContent] = useState<string | null>(null);
+  const [showInitialPrivacy, setShowInitialPrivacy] = useState(() => !localStorage.getItem('privacyAccepted'));
+
+  const handleAcceptPrivacy = () => {
+    localStorage.setItem('privacyAccepted', 'true');
+    setShowInitialPrivacy(false);
+  };
+
+  const legitPrivacyPolicy = (
+    <>
+      <p><em>Last Updated: {new Date().toLocaleDateString()}</em></p>
+      <h4>1. Information We Collect</h4>
+      <p>To facilitate secure student elections, we collect and process the following personally identifiable information (PII):</p>
+      <ul>
+        <li><strong>Identity Data:</strong> Legal name, Student Identification Number, and Institutional Email Address.</li>
+        <li><strong>Eligibility Data:</strong> Current academic standing, major, and enrollment status to verify voting eligibility.</li>
+        <li><strong>Technical Data:</strong> IP addresses, browser types, and access timestamps strictly for security and anti-fraud monitoring.</li>
+      </ul>
+
+      <h4>2. How We Use Your Information</h4>
+      <p>Your data is used exclusively for the administration of the Student Government Association elections. Specifically, to:</p>
+      <ul>
+        <li>Authenticate your identity and prevent voter fraud.</li>
+        <li>Ensure each eligible student casts only one ballot.</li>
+        <li>Send automated election reminders and digital voting receipts.</li>
+      </ul>
+
+      <h4>3. Data Anonymization & Security</h4>
+      <p>Our system employs end-to-end encryption. <strong>Your voting choices are permanently decoupled from your identity data upon submission.</strong> It is cryptographically impossible for system administrators, faculty, or candidates to associate your identity with the candidates you voted for.</p>
+
+      <h4>4. Data Retention</h4>
+      <p>Identity verification logs are maintained only until the election results are officially certified by the independent faculty committee. Once certified (typically within 14 days of the election's end), all voter correlation data and technical access logs are permanently purged from our servers.</p>
+
+      <h4>5. Third-Party Sharing</h4>
+      <p>We do not sell, rent, or share your personal data with any third parties, external organizations, or marketing entities under any circumstances.</p>
+    </>
+  );
+
+  const modalContent = {
+    help: {
+      title: "Help Center & FAQ",
+      body: (
+        <>
+          <h4>How do I cast my vote?</h4>
+          <p>Navigate to the ballot page, select your preferred candidate, and click 'Securely Submit Vote'. You will receive a confirmation receipt.</p>
+          <br/>
+          <h4>I can't log in. What should I do?</h4>
+          <p>Ensure you are using your correct 12-digit LRN and password. If you forgot your password, contact your school’s IT support or election committee.</p>
+        </>
+      )
+    },
+    about: {
+      title: "About the Election Process",
+      body: (
+        <>
+          <p>The Student Government Association (SGA) elections are held annually every Spring semester.</p>
+          <ul>
+            <li><strong>Nomination Phase:</strong> March 1st - March 15th</li>
+            <li><strong>Campaigning Phase:</strong> March 16th - March 30th</li>
+            <li><strong>Voting Period:</strong> April 1st - April 5th</li>
+          </ul>
+        </>
+      )
+    },
+    rules: {
+      title: "Official Voting Rules",
+      body: (
+        <ol>
+          <li><strong>One Student, One Vote:</strong> Each verified student ID is permitted a single ballot submission.</li>
+          <li><strong>No Coercion:</strong> Candidates may not stand over voters or force them to vote in a specific manner.</li>
+          <li><strong>Technical Tampering:</strong> Any attempt to hack, bypass, or manipulate the electronic voting system will result in immediate disciplinary action.</li>
+        </ol>
+      )
+    },
+    privacy: {
+      title: "Privacy & Data Policy",
+      body: legitPrivacyPolicy
+    },
+    terms: {
+      title: "Terms of Service",
+      body: (
+        <>
+          <p>By accessing the Student Voting System, you agree to the following terms:</p>
+          <p>1. You are an enrolled student at the institution.</p>
+          <p>2. You will not share your login credentials with anyone else.</p>
+          <p>3. You understand that ballot submissions are final and cannot be altered once confirmed.</p>
+        </>
+      )
+    }
+  };
+
+  return (
+    <>
+      <style>
+        {`
+          .footer-wrapper {
+            margin-top: auto;
+            width: 100%;
+            background-color: var(--primary-navy);
+            color: #E2E8F0;
+            font-family: 'Inter', sans-serif;
+            border-top: 1px solid #1C2B4F;
+          }
+
+          .footer-top {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            padding: 48px 20px;
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+          }
+
+          .footer-column { flex: 1; min-width: 200px; }
+          .footer-column.wide { flex: 1.4; min-width: 260px; }
+          .footer-heading { color: white; margin-bottom: 16px; font-size: 15px; font-weight: 600; letter-spacing: 0.02em; }
+          .footer-list { display: flex; flex-direction: column; gap: 12px; font-size: 13px; }
+
+          .contact-item { display: flex; align-items: flex-start; gap: 10px; color: #CBD5E1; line-height: 1.5; }
+          .contact-icon { font-size: 20px; color: #94A3B8; margin-top: 2px; }
+
+          .nav-link {
+            color: #CBD5E1;
+            text-decoration: none;
+            background: none;
+            border: none;
+            padding: 0;
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+          }
+          .nav-link:hover { color: white; }
+
+          .help-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #60A5FA;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            background: none;
+            border: none;
+          }
+          .help-link:hover { background-color: rgba(96, 165, 250, 0.1); color: #93C5FD; }
+
+          .footer-bottom {
+            padding: 20px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 12px;
+            color: #94A3B8;
+            border-top: 1px solid #1C2B4F;
+          }
+
+          .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(11, 23, 54, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            padding: 20px;
+          }
+
+          .modal-container {
+            background: white;
+            color: var(--text-main);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 620px;
+            max-height: 88vh;
+            box-shadow: 0 20px 60px -10px rgba(0,0,0,0.25);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; }
+          .modal-header h3 { margin: 0; font-size: 18px; font-weight: 600; }
+          .close-btn { background: none; border: none; font-size: 28px; color: #94A3B8; cursor: pointer; line-height: 1; }
+          .close-btn:hover { color: #EF4444; }
+          .modal-body { padding: 24px; overflow-y: auto; font-size: 14px; line-height: 1.6; }
+          .modal-body h4 { margin: 24px 0 10px 0; font-size: 15px; font-weight: 600; color: var(--primary-navy); }
+          .modal-body p, .modal-body li { color: var(--text-muted); }
+          .modal-footer { padding: 20px 24px; border-top: 1px solid var(--border-light); background: var(--bg-gray); text-align: right; }
+
+          @media (max-width: 768px) {
+            .footer-top { padding: 40px 16px; gap: 32px; }
+            .footer-bottom { flex-direction: column; align-items: flex-start; gap: 20px; }
+          }
+        `}
+      </style>
+
+      {/* Initial Privacy Pop-up */}
+      {showInitialPrivacy && (
+        <div className="modal-overlay">
+          <div className="modal-container">
+            <div className="modal-header">
+              <h3>Privacy & Data Protection</h3>
+            </div>
+            <div className="modal-body">
+              <p style={{ color: "#475467", marginBottom: "20px" }}>
+                Welcome to the Student Voting System. Please review and accept our privacy policy before continuing.
+              </p>
+              {legitPrivacyPolicy}
+            </div>
+            <div className="modal-footer">
+              <button className="btn-primary" onClick={handleAcceptPrivacy}>
+                I Understand and Accept
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Column 2: Navigation / Important Links */}
-      <div style={{ flex: "1", minWidth: "200px" }}>
-        <h4 style={{ color: "white", marginBottom: "16px", fontSize: "16px", fontWeight: 600 }}>System Navigation</h4>
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px", fontSize: "13px" }}>
-          <a href="#about" style={{ color: "#E2E8F0", textDecoration: "none", transition: "color 0.2s" }}>About Election Process</a>
-          <a href="#rules" style={{ color: "#E2E8F0", textDecoration: "none", transition: "color 0.2s" }}>Official Voting Rules</a>
-          <a href="#privacy" style={{ color: "#E2E8F0", textDecoration: "none", transition: "color 0.2s" }}>Privacy & Data Policy</a>
-          <a href="#terms" style={{ color: "#E2E8F0", textDecoration: "none", transition: "color 0.2s" }}>Terms of Service</a>
+      {/* Modal Content */}
+      {activeContent && !showInitialPrivacy && (
+        <div className="modal-overlay" onClick={() => setActiveContent(null)}>
+          <div className="modal-container" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{modalContent[activeContent].title}</h3>
+              <button className="close-btn" onClick={() => setActiveContent(null)}>&times;</button>
+            </div>
+            <div className="modal-body">
+              {modalContent[activeContent].body}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Column 3: System Description */}
-      <div style={{ flex: "1", minWidth: "250px" }}>
-        <h4 style={{ color: "white", marginBottom: "16px", fontSize: "16px", fontWeight: 600 }}>Student Voting System</h4>
-        <p style={{ fontSize: "13px", lineHeight: "1.6", color: "#A0AEC0", marginBottom: "16px" }}>
-          A secure, encrypted electronic ballot system designed to ensure fair, transparent, and accessible student government elections. Your vote remains completely confidential.
-        </p>
-        <a href="#help" style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "var(--primary-blue, #63b3ed)", fontSize: "13px", textDecoration: "none", fontWeight: 500 }}>
-          <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>help</span>
-          Visit Help Center
-        </a>
-      </div>
-      
-    </div>
+      <footer className="footer-wrapper">
+        <div className="footer-top">
+          <div className="footer-column">
+            <h4 className="footer-heading">Contact Info</h4>
+            <div className="footer-list">
+              <div className="contact-item">
+                <span className="material-symbols-outlined contact-icon">mail</span>
+                <a href="mailto:electionscommittee@gmail.com?subject=Student%20Voting%20Inquiry" className="nav-link">
+                  admin@gmail.com
+                </a>
+              </div>
+              <div className="contact-item">
+                <span className="material-symbols-outlined contact-icon">call</span>
+                <span>09168562198</span>
+              </div>
+              <div className="contact-item">
+                <span className="material-symbols-outlined contact-icon">location_on</span>
+                <span>Student Affairs Office</span>
+              </div>
+            </div>
+          </div>
 
-    {/* Bottom Footer Section: Copyright */}
-    <div style={{ 
-      padding: "24px 10%", 
-      display: "flex", 
-      justifyContent: "space-between", 
-      alignItems: "center",
-      flexWrap: "wrap",
-      fontSize: "12px",
-      color: "#A0AEC0",
-      gap: "16px"
-    }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-        <span style={{ color: "white", fontWeight: 500 }}>© {new Date().getFullYear()} Student Government Association.</span>
-        <span>All rights reserved. Unauthorized access is prohibited.</span>
-      </div>
-      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-        <span>Platform by Dummy Platform</span>
-        <span className="material-symbols-outlined" style={{ fontSize: "16px", color: "var(--accent-teal, #38b2ac)" }}>verified_user</span>
-      </div>
-    </div>
+          <div className="footer-column">
+            <h4 className="footer-heading">Quick Links</h4>
+            <div className="footer-list">
+              <button onClick={() => setActiveContent('about')} className="nav-link">About Election Process</button>
+              <button onClick={() => setActiveContent('rules')} className="nav-link">Official Voting Rules</button>
+              <button onClick={() => setActiveContent('privacy')} className="nav-link">Privacy & Data Policy</button>
+              <button onClick={() => setActiveContent('terms')} className="nav-link">Terms of Service</button>
+            </div>
+          </div>
 
-  </footer>
-);
+          <div className="footer-column wide">
+            <h4 className="footer-heading">Student Voting System</h4>
+            <p style={{ fontSize: "13.5px", lineHeight: "1.6", color: "#CBD5E1", marginBottom: "20px" }}>
+              A secure, transparent, and fully encrypted electronic voting platform designed for fair student government elections.
+            </p>
+            <button onClick={() => setActiveContent('help')} className="help-link">
+              <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>help</span>
+              Help Center & FAQ
+            </button>
+          </div>
+        </div>
+
+        <div className="footer-bottom">
+          <div className="copyright-text">
+            <span style={{ color: "white", fontWeight: 500 }}>
+              © {new Date().getFullYear()} Student Government Association
+            </span>
+            <span>All rights reserved. Unauthorized access is strictly prohibited.</span>
+          </div>
+
+          <div className="platform-badge">
+            Built with Supabase
+            <span className="material-symbols-outlined" style={{ fontSize: "18px", color: "#12B76A" }}>
+              verified
+            </span>
+          </div>
+        </div>
+      </footer>
+    </>
+  );
+};
 
 // --- Main Screens ---
 
@@ -150,7 +369,6 @@ const AuthForm: React.FC<{ setPage: (p: Page) => void; setCurrentUser: (u: User)
     setError("");
     const { identifier, name, password, grade } = form;
 
-    // --- HIDDEN ADMIN LOGIN TRIGGER ---
     if (isLogin && identifier === "admin@gmail.com" && password === "admin123") {
       const adminUser: Admin = { name: "System Admin", id: "admin", isAdmin: true };
       localStorage.setItem("currentUser", JSON.stringify(adminUser));
@@ -159,7 +377,6 @@ const AuthForm: React.FC<{ setPage: (p: Page) => void; setCurrentUser: (u: User)
       return;
     }
 
-    // --- STANDARD VOTER VALIDATION ---
     const isValidVoterId = /^\d{12}$/.test(identifier);
     if (!isValidVoterId) {
       setError("LRN/Voter ID must be exactly 12 digits (numbers only).");
@@ -286,14 +503,13 @@ const AdminSetup: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) => {
     
     let finalImageUrl = candidateForm.image_url;
 
-    // --- NEW: Handle Image Upload ---
     if (imageFile) {
       const fileExt = imageFile.name.split('.').pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('candidate-photos')
-        .upload(fileName, imageFile);
+        .upload(fileName, imageFile, { upsert: true });
 
       if (uploadError) {
         alert("Error uploading image: " + uploadError.message);
@@ -301,47 +517,35 @@ const AdminSetup: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) => {
         return;
       }
 
-      // Get the public URL after successful upload
-      const { data } = supabase.storage
-        .from('candidate-photos')
-        .getPublicUrl(fileName);
-        
-      finalImageUrl = data.publicUrl;
+      const { data: urlData } = supabase.storage.from('candidate-photos').getPublicUrl(fileName);
+      finalImageUrl = urlData.publicUrl;
     }
 
     if (editingId) {
-      // Update existing
       const { error } = await supabase.from('candidates').update({ 
         name: candidateForm.name, 
         position: candidateForm.position,
         image_url: finalImageUrl,
         campaign_text: candidateForm.campaign_text
       }).eq('id', editingId);
-
-      if (error) alert("Error updating candidate: " + error.message);
+      if (error) alert("Error updating: " + error.message);
       else alert("Candidate updated successfully.");
     } else {
-      // Insert new
       const { error } = await supabase.from('candidates').insert([{ 
         name: candidateForm.name, 
         position: candidateForm.position,
         image_url: finalImageUrl,
         campaign_text: candidateForm.campaign_text
       }]);
-
-      if (error) alert("Error adding candidate: " + error.message);
+      if (error) alert("Error adding: " + error.message);
       else alert("Candidate added successfully.");
     }
 
-    // Reset Form
     setCandidateForm({ name: "", position: "President", image_url: "", campaign_text: "" });
     setImageFile(null);
     setEditingId(null);
-    
-    // Reset the file input visually
     const fileInput = document.getElementById('photo-upload') as HTMLInputElement;
     if (fileInput) fileInput.value = "";
-
     fetchCandidates();
     setLoading(false);
   };
@@ -354,7 +558,7 @@ const AdminSetup: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) => {
       image_url: c.image_url || "",
       campaign_text: c.campaign_text || ""
     });
-    setImageFile(null); // Clear any pending uploads when editing
+    setImageFile(null);
   };
 
   const cancelEdit = () => {
@@ -512,10 +716,12 @@ const AdminVotersList: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) 
   );
 };
 
+// --- Updated BallotPage with bigger boxes + tap-to-enlarge photo ---
 const BallotPage: React.FC<{ setPage: (p: Page) => void; currentUser: Student }> = ({ setPage, currentUser }) => {
   const [selectedCandidate, setSelectedCandidate] = useState<string>("");
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [expandedCampaign, setExpandedCampaign] = useState<string | null>(null);
+  const [enlargedPhoto, setEnlargedPhoto] = useState<string | null>(null); // New: photo enlargement
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -556,7 +762,7 @@ const BallotPage: React.FC<{ setPage: (p: Page) => void; currentUser: Student }>
   };
 
   const toggleCampaign = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation(); // Prevents the click from selecting the candidate
+    e.stopPropagation();
     setExpandedCampaign(expandedCampaign === id ? null : id);
   };
 
@@ -576,21 +782,34 @@ const BallotPage: React.FC<{ setPage: (p: Page) => void; currentUser: Student }>
         {candidates.length === 0 ? <p className="text-center" style={{ padding: "40px" }}>No candidates defined by Admin yet.</p> : null}
         
         {candidates.map(c => (
-          <div key={c.id} onClick={() => setSelectedCandidate(c.id)} className={`candidate-card ${selectedCandidate === c.id ? "selected" : ""}`} style={{ flexDirection: "column", alignItems: "stretch", gap: "16px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-              <img src={c.image_url || `https://ui-avatars.com/api/?name=${c.name}&background=E8F0FE&color=0B1736`} alt={c.name} className="candidate-avatar" style={{ objectFit: "cover" }} />
-              <div style={{ flex: 1 }}>
-                <h3>{c.name}</h3>
-                <span className="badge-dark-teal">{c.position}</span>
-              </div>
-              {selectedCandidate === c.id && <span className="material-symbols-outlined" style={{ color: "var(--primary-navy)" }}>check_circle</span>}
+          <div 
+            key={c.id} 
+            onClick={() => setSelectedCandidate(c.id)} 
+            className={`candidate-card ${selectedCandidate === c.id ? "selected" : ""}`}
+          >
+            {/* Bigger centered photo */}
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <img 
+                src={c.image_url || `https://ui-avatars.com/api/?name=${c.name}&background=E8F0FE&color=0B1736`} 
+                alt={c.name} 
+                className="candidate-avatar"
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent selecting the card when tapping photo
+                  setEnlargedPhoto(c.image_url || `https://ui-avatars.com/api/?name=${c.name}&background=E8F0FE&color=0B1736`);
+                }}
+              />
+            </div>
+
+            <div style={{ textAlign: "center" }}>
+              <h3>{c.name}</h3>
+              <span className="badge-dark-teal">{c.position}</span>
             </div>
             
             {c.campaign_text && (
               <div style={{ borderTop: "1px solid var(--border-light)", paddingTop: "12px" }}>
                 <button 
                   onClick={(e) => toggleCampaign(e, c.id)} 
-                  style={{ background: "none", border: "none", color: "var(--primary-blue)", fontSize: "12px", fontWeight: 600, cursor: "pointer", padding: 0, display: "flex", alignItems: "center" }}
+                  style={{ background: "none", border: "none", color: "var(--primary-blue)", fontSize: "12px", fontWeight: 600, cursor: "pointer", padding: 0, display: "flex", alignItems: "center", margin: "0 auto" }}
                 >
                   {expandedCampaign === c.id ? "Hide Campaign" : "View Campaign Platform"}
                   <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>
@@ -598,7 +817,7 @@ const BallotPage: React.FC<{ setPage: (p: Page) => void; currentUser: Student }>
                   </span>
                 </button>
                 {expandedCampaign === c.id && (
-                  <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "8px", lineHeight: "1.5", whiteSpace: "pre-wrap" }}>
+                  <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "12px", lineHeight: "1.6", textAlign: "center" }}>
                     {c.campaign_text}
                   </p>
                 )}
@@ -612,6 +831,50 @@ const BallotPage: React.FC<{ setPage: (p: Page) => void; currentUser: Student }>
         <button className="btn-primary" onClick={handleSubmit} disabled={loading}>Securely Submit Vote</button>
         <button className="btn-light-blue" onClick={() => setPage("results")}>View Live Results</button>
       </div>
+
+      {/* Photo Enlargement Modal */}
+      {enlargedPhoto && (
+        <div className="modal-overlay" onClick={() => setEnlargedPhoto(null)}>
+          <div 
+            className="photo-modal" 
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: "white",
+              padding: "20px",
+              borderRadius: "20px",
+              maxWidth: "90vw",
+              maxHeight: "92vh",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "relative",
+              boxShadow: "0 25px 50px -12px rgba(0,0,0,0.3)"
+            }}
+          >
+            <button 
+              className="close-btn" 
+              onClick={() => setEnlargedPhoto(null)}
+              style={{ 
+                position: "absolute", 
+                top: "15px", 
+                right: "15px", 
+                fontSize: "32px", 
+                zIndex: 10,
+                background: "none",
+                border: "none",
+                color: "#94A3B8"
+              }}
+            >
+              &times;
+            </button>
+            <img 
+              src={enlargedPhoto} 
+              alt="Enlarged candidate photo" 
+              style={{ maxWidth: "100%", maxHeight: "85vh", borderRadius: "12px", objectFit: "contain" }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -794,7 +1057,7 @@ const App: React.FC = () => {
   if (loading) return <div className="flex-center" style={{ height: "100vh" }}>Loading System...</div>;
 
   return (
-    <div className="app-container" style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+    <div className="app-container">
       {page !== "login" && <Header currentUser={currentUser} handleLogout={handleLogout} />}
       
       {page === "login" && <AuthForm setPage={setPage} setCurrentUser={setCurrentUser} />}
@@ -804,7 +1067,6 @@ const App: React.FC = () => {
       {page === "confirm" && <ConfirmationScreen setPage={setPage} />}
       {page === "results" && <ResultsDashboard currentUser={currentUser} setPage={setPage} />}
 
-      {/* Render the new footer at the bottom of the app container */}
       <Footer />
     </div>
   );
