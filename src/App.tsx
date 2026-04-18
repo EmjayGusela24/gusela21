@@ -4,7 +4,7 @@ import "./App.css";
 // =====================================================
 // STUDENT VOTING SYSTEM - COMPLETE FULL CODE (Fixed)
 // Total lines: 1550+
-// Updated with your new bright solid footer
+// Footer updated with your new bright solid version
 // =====================================================
 
 // --- Types ---
@@ -232,11 +232,7 @@ const Footer = () => {
     <>
       <style>
         {`
-          .app-container {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-          }
+          .app-container { min-height: 100vh; display: flex; flex-direction: column; }
           .footer-wrapper {
             margin-top: auto;
             width: 100%;
@@ -349,7 +345,7 @@ const Footer = () => {
             border-bottom: 1px solid var(--border-light);
             display: flex;
             justify-content: space-between;
-            alignItems: center;
+            align-items: center;
           }
           .modal-header h3 {
             margin: 0;
@@ -460,7 +456,6 @@ const Footer = () => {
             </div>
           </div>
         </div>
-
         <div className="footer-bottom">
           <div className="copyright-text">
             <span style={{ color: "#F1F5F9", fontWeight: 500 }}>© {new Date().getFullYear()} Supreme Student Learners Government</span>
@@ -976,7 +971,7 @@ const StudentProfile: React.FC<{ setPage: (p: Page) => void; studentId: string }
         </div>
         <div>
           <span className={`badge-${student.has_voted ? "accent-teal" : "light-blue"}`}>
-            {student.has_voted ? "✅ Has Voted" : "⏳ Pending"}
+            {student.has_voted ? "Has Voted" : "Pending"}
           </span>
         </div>
       </div>
@@ -1202,7 +1197,7 @@ const BallotPage: React.FC<{ setPage: (p: Page) => void; currentUser: Student }>
 
 const ConfirmationScreen: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) => (
   <div className="screen-content flex-center" style={{ minHeight: "calc(100vh - 80px)", padding: "20px" }}>
-    <div className="confirm-box" style={{ maxWidth: "520px", width: "100%", margin: "0 auto", padding: "50px 40px", textAlign: "center", background: "white", borderRadius: "20px", boxShadow: "0 20px 60px rgba(0, 0, 0, 0.08)", border: "1px solid #e2e8f0" }}>
+    <div className="confirm-box" style={{ maxWidth: "520px", width: "100%", margin: "0 auto", padding: "50px 40px", textAlign: "center", background: "white", borderRadius: "20px", boxShadow: "0 20px 60px rgba(0,0,0,0.08)", border: "1px solid #e2e8f0" }}>
       <div style={{ marginBottom: "28px" }}>
         <span className="material-symbols-outlined success-icon" style={{ fontSize: "78px", color: "#10b981", background: "#ecfdf5", padding: "20px", borderRadius: "50%" }}>task_alt</span>
       </div>
@@ -1210,28 +1205,23 @@ const ConfirmationScreen: React.FC<{ setPage: (p: Page) => void }> = ({ setPage 
       <p style={{ marginBottom: "40px", fontSize: "16px", lineHeight: "1.6", color: "#475467", maxWidth: "380px", marginLeft: "auto", marginRight: "auto" }}>
         Your encrypted ballot has been safely recorded for every position.
       </p>
-
       <div className="audit-receipt" style={{ background: "#f8fafc", border: "2px solid #0B1736", borderRadius: "16px", padding: "28px", marginBottom: "36px", textAlign: "left" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
           <span className="material-symbols-outlined" style={{ color: "#0B1736", fontSize: "28px" }}>lock</span>
           <span className="overline" style={{ color: "#0B1736", fontWeight: 700 }}>OFFICIAL VOTE RECEIPT</span>
         </div>
-
         <p style={{ margin: "8px 0 4px", fontSize: "13px", color: "#475467" }}>Receipt ID</p>
         <div style={{ fontFamily: "monospace", fontSize: "15px", padding: "14px", background: "white", borderRadius: "8px", border: "1px solid #e2e8f0", marginBottom: "16px" }}>
           {Math.random().toString(36).substr(2, 12).toUpperCase()}
         </div>
-
         <p style={{ margin: "8px 0 4px", fontSize: "13px", color: "#475467" }}>Timestamp</p>
         <div style={{ padding: "14px", background: "white", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
           {new Date().toLocaleString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric' })}
         </div>
-
         <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px dashed #94A3B8", fontSize: "12.5px", color: "#64748b", textAlign: "center" }}>
           This receipt is for your records only.<br />Your vote is anonymous and cannot be traced back to you.
         </div>
       </div>
-
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         <button className="btn-outline-wide" onClick={() => window.print()} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "14px" }}>
           <span className="material-symbols-outlined" style={{ fontSize: "22px" }}>print</span> Print Receipt
@@ -1293,7 +1283,13 @@ const ResultsDashboard: React.FC<{ currentUser: User | null; setPage: (p: Page) 
             </>
           )}
           {isStudent && (
-            <button className="btn-light-blue" onClick={() => setPage("my_receipt")} style={{ width: "auto", padding: "8px 16px" }}>View My Receipt</button>
+            <button 
+              className="btn-light-blue" 
+              onClick={() => setPage("my_receipt")} 
+              style={{ width: "auto", padding: "8px 16px" }}
+            >
+              View My Receipt
+            </button>
           )}
         </div>
       </div>
@@ -1444,7 +1440,7 @@ const PrintResults: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) => 
       <ReturnButton onClick={() => setPage("admin_setup")} />
       <div className="no-print" style={{ marginBottom: "30px", textAlign: "center" }}>
         <button className="btn-primary" onClick={() => window.print()} style={{ padding: "14px 32px", fontSize: "16px" }}>
-          🖨️ Print Official Results
+           Print Official Results
         </button>
       </div>
       <div id="printable-results" style={{ background: "white", padding: "50px", maxWidth: "900px", margin: "0 auto", border: "2px solid #0B1736" }}>

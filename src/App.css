@@ -34,8 +34,6 @@ html, body, #root {
   flex-direction: column; 
 }
 
-
-
 /* ====================== IMPROVED TEXT READABILITY ====================== */
 h1, h2, h3, .card-title, .section-title {
   color: #0F172A !important;
@@ -197,14 +195,15 @@ input::placeholder, textarea::placeholder {
   object-fit: contain;
 }
 
-/* Footer */
+/* ====================== FIXED FOOTER ====================== */
 .footer-wrapper {
   position: relative;
   z-index: 10;
   margin-top: auto;
   width: 100%;
-  background-color: var(--primary-navy);
-  color: #E2E8F0;
+  background-color: #0F172A; /* Solid navy - no transparency */
+  color: #ffffff !important;
+  font-family: 'Inter', sans-serif;
 }
 
 .footer-top {
@@ -219,20 +218,71 @@ input::placeholder, textarea::placeholder {
 
 .footer-column { flex: 1; min-width: 200px; }
 .footer-column.wide { flex: 1.4; min-width: 260px; }
-.footer-heading { color: #0F172A; margin-bottom: 16px; font-size: 15px; font-weight: 600; letter-spacing: 0.02em; }
-.footer-list { display: flex; flex-direction: column; gap: 11px; font-size: 13px; }
 
-.contact-item { display: flex; align-items: flex-start; gap: 10px; color: #64748B; line-height: 1.5; }
-.contact-icon { font-size: 20px; color: #94A3B8; margin-top: 2px; }
+.footer-heading {
+  color: #ffffff !important;
+  margin-bottom: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
 
-.nav-link { color: #64748B; text-decoration: none; background: none; border: none; padding: 0; font: inherit; text-align: left; cursor: pointer; transition: all 0.2s ease; }
-.nav-link:hover { color: #0F172A; }
+.footer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  font-size: 13px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #ffffff !important;
+  line-height: 1.5;
+}
+
+.contact-icon {
+  font-size: 20px;
+  color: #94A3B8;
+  margin-top: 2px;
+}
+
+.nav-link {
+  color: #ffffff !important;
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover { 
+  color: #E0F2FE !important; 
+}
 
 .help-link {
-  display: inline-flex; align-items: center; gap: 8px; color: #60A5FA; font-size: 13px; font-weight: 500;
-  padding: 8px 12px; border-radius: 6px; transition: all 0.2s ease; cursor: pointer; background: none; border: none;
+  display: inline-flex; 
+  align-items: center; 
+  gap: 8px; 
+  color: #ffffff !important; 
+  font-size: 13px; 
+  font-weight: 500;
+  padding: 8px 12px; 
+  border-radius: 6px; 
+  transition: all 0.2s ease; 
+  cursor: pointer; 
+  background: none; 
+  border: none;
 }
-.help-link:hover { background-color: rgba(15, 23, 42, 0.1); color: #1E40AF; }
+
+.help-link:hover { 
+  background-color: rgba(255,255,255,0.1); 
+  color: #ffffff; 
+}
 
 .footer-bottom {
   padding: 18px 20px;
@@ -244,15 +294,27 @@ input::placeholder, textarea::placeholder {
   flex-wrap: wrap;
   gap: 16px;
   font-size: 12.5px;
-  color: #64748B;
-  border-top: 1px solid #E2E8F0;
+  color: #ffffff !important;
+  border-top: 1px solid #334155;
 }
 
-.copyright-text { display: flex; flex-direction: column; gap: 3px; }
+.copyright-text { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 3px; 
+  color: #ffffff !important;
+}
 
 .platform-badge {
-  display: flex; align-items: center; gap: 8px; padding: 6px 14px;
-  background: rgba(15, 23, 42, 0.08); border-radius: 6px; font-size: 12px; color: #0F172A; white-space: nowrap;
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+  padding: 6px 14px;
+  background: rgba(255,255,255,0.1); 
+  border-radius: 6px; 
+  font-size: 12px; 
+  color: #ffffff !important; 
+  white-space: nowrap;
 }
 
 /* Other styles */
@@ -330,7 +392,6 @@ input:focus {
 .result-avatar { width: 48px; height: 48px; border-radius: 8px; }
 .result-bar-bg { height: 8px; background: var(--border-light); border-radius: 4px; overflow: hidden; }
 .result-bar-fill { height: 100%; background: var(--primary-navy); border-radius: 4px; transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1); }
-.gray-fill { background: var(--secondary-navy); opacity: 0.8; }
 
 .live-dot { width: 6px; height: 6px; background: #D92D20; border-radius: 50%; display: inline-block; animation: pulse 2s infinite; }
 .badge-cyan { background: #E6F8F3; color: #027A48; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; }
