@@ -219,20 +219,20 @@ input::placeholder, textarea::placeholder {
 
 .footer-column { flex: 1; min-width: 200px; }
 .footer-column.wide { flex: 1.4; min-width: 260px; }
-.footer-heading { color: white; margin-bottom: 16px; font-size: 15px; font-weight: 600; letter-spacing: 0.02em; }
+.footer-heading { color: #0F172A; margin-bottom: 16px; font-size: 15px; font-weight: 600; letter-spacing: 0.02em; }
 .footer-list { display: flex; flex-direction: column; gap: 11px; font-size: 13px; }
 
-.contact-item { display: flex; align-items: flex-start; gap: 10px; color: #CBD5E1; line-height: 1.5; }
+.contact-item { display: flex; align-items: flex-start; gap: 10px; color: #64748B; line-height: 1.5; }
 .contact-icon { font-size: 20px; color: #94A3B8; margin-top: 2px; }
 
-.nav-link { color: #CBD5E1; text-decoration: none; background: none; border: none; padding: 0; font: inherit; text-align: left; cursor: pointer; transition: all 0.2s ease; }
-.nav-link:hover { color: white; }
+.nav-link { color: #64748B; text-decoration: none; background: none; border: none; padding: 0; font: inherit; text-align: left; cursor: pointer; transition: all 0.2s ease; }
+.nav-link:hover { color: #0F172A; }
 
 .help-link {
   display: inline-flex; align-items: center; gap: 8px; color: #60A5FA; font-size: 13px; font-weight: 500;
   padding: 8px 12px; border-radius: 6px; transition: all 0.2s ease; cursor: pointer; background: none; border: none;
 }
-.help-link:hover { background-color: rgba(96, 165, 250, 0.1); color: #93C5FD; }
+.help-link:hover { background-color: rgba(15, 23, 42, 0.1); color: #1E40AF; }
 
 .footer-bottom {
   padding: 18px 20px;
@@ -244,15 +244,15 @@ input::placeholder, textarea::placeholder {
   flex-wrap: wrap;
   gap: 16px;
   font-size: 12.5px;
-  color: #94A3B8;
-  border-top: 1px solid #1C2B4F;
+  color: #64748B;
+  border-top: 1px solid #E2E8F0;
 }
 
 .copyright-text { display: flex; flex-direction: column; gap: 3px; }
 
 .platform-badge {
   display: flex; align-items: center; gap: 8px; padding: 6px 14px;
-  background: rgba(255,255,255,0.08); border-radius: 6px; font-size: 12px; color: #E2E8F0; white-space: nowrap;
+  background: rgba(15, 23, 42, 0.08); border-radius: 6px; font-size: 12px; color: #0F172A; white-space: nowrap;
 }
 
 /* Other styles */
