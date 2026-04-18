@@ -1036,7 +1036,6 @@ const StudentProfile: React.FC<{ setPage: (p: Page) => void; studentId: string }
     fetchProfile();
   }, [studentId]);
 
-  const avatar = student?.photo_url || `https://ui-avatars.com/api/?name=${student?.name || "Student"}&background=E8F0FE&color=0B1736`;
 
   if (loading) return <div className="screen-content flex-center">Loading student profile...</div>;
 
