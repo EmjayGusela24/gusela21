@@ -561,8 +561,13 @@ const AuthForm: React.FC<{ setPage: (p: Page) => void; setCurrentUser: (u: User)
           <button className={isLogin ? "btn-light-blue" : "btn-outline-wide"} onClick={() => { setIsLogin(true); setError(""); }}>Login</button>
           <button className={!isLogin ? "btn-light-blue" : "btn-outline-wide"} onClick={() => { setIsLogin(false); setError(""); }}>Register</button>
         </div>
-        <h2 className="text-center">{isLogin ? "Welcome Back" : "Create an Account"}</h2>
-        <p className="text-center subtitle">Secure student election portal</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div>
+            <h2>{isLogin ? "Welcome Back" : "Create an Account"}</h2>
+            <p className="subtitle">Secure student election portal</p>
+          </div>
+          <img src="/logo.png" alt="School Logo" style={{ width: '80px', height: '80px', borderRadius: '50%', border: '2px solid var(--border-light)', objectFit: 'cover' }} />
+        </div>
         {error && <div style={{ color: "#D92D20", background: "#FEF3F2", padding: "12px", borderRadius: "8px", fontSize: "12px", marginBottom: "16px", fontWeight: 600 }}>{error}</div>}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
           <input name="identifier" placeholder="12-Digit LRN (Voter ID)" value={form.identifier} onChange={handleChange} />
