@@ -158,7 +158,7 @@ const Footer = () => {
       <h4>1. Information We Collect</h4>
       <p>To facilitate secure student elections, we collect and process the following personally identifiable information (PII):</p>
       <ul>
-        <li><strong>Identity Data:</strong> Legal name, Student Identification Number (LRN), and Institutional Email Address.</li>
+        <li><strong>Identity Data:</strong> Legal name, and Student Identification Number (LRN).</li>
         <li><strong>Eligibility Data:</strong> Current academic standing, grade, and enrollment status to verify voting eligibility.</li>
         <li><strong>Technical Data:</strong> IP addresses, browser types, and access timestamps strictly for security and anti-fraud monitoring.</li>
       </ul>
@@ -264,12 +264,13 @@ const Footer = () => {
             flex-direction: column;
             gap: 12px;
             font-size: 13.5px;
+            color: #E2E8F0;
           }
           .contact-item {
             display: flex;
             align-items: flex-start;
             gap: 10px;
-            color: #E2E8F0;
+            color: #FFFFFF;
             line-height: 1.5;
           }
           .contact-icon {
@@ -278,7 +279,7 @@ const Footer = () => {
             margin-top: 2px;
           }
           .nav-link {
-            color: #CBD5E1;
+            color: #E2E8F0;
             text-decoration: none;
             background: none;
             border: none;
@@ -292,7 +293,7 @@ const Footer = () => {
           .supported-by {
             margin-top: 20px;
             font-size: 13.5px;
-            color: #CBD5E1;
+            color: #E2E8F0;
             line-height: 1.6;
           }
           .supported-by a {
@@ -314,7 +315,7 @@ const Footer = () => {
             flex-wrap: wrap;
             gap: 16px;
             font-size: 12.5px;
-            color: #94A3B8;
+            color: #E2E8F0;
             border-top: 1px solid #334155;
           }
           .modal-overlay {
@@ -432,9 +433,22 @@ const Footer = () => {
           <div className="footer-column">
             <h4 className="footer-heading">Contact Info</h4>
             <div className="footer-list">
-              <div className="contact-item"><span className="material-symbols-outlined contact-icon">mail</span><a href="mailto:admin@gmail.com" className="nav-link">admin@gmail.com</a></div>
-              <div className="contact-item"><span className="material-symbols-outlined contact-icon">call</span><span>09168562198</span></div>
-              <div className="contact-item"><span className="material-symbols-outlined contact-icon">location_on</span><span>Student Affairs Office</span></div>
+              <div className="contact-item">
+                <span className="material-symbols-outlined contact-icon">mail</span>
+                <a href="https://mail.google.com/mail/?view=cm&fs=1&tf=1&to=emjaygusela@gmail.com" target="_blank" rel="noopener noreferrer" className="nav-link">
+                  admin@gmail.com
+                </a>
+              </div>
+              <div className="contact-item"><span className="material-symbols-outlined contact-icon">call</span><a href="tel:09168562198" className="nav-link">09168562198</a></div>
+              <div className="contact-item">
+                <span className="material-symbols-outlined contact-icon">location_on</span>
+                <a href="https://www.google.com/maps/place/Domingo+Ledesma+Mapa+High+School/@9.5133208,123.0910525,17z/data=!3m1!4b1!4m6!3m5!1s0x33ab7f6a41db8457:0x65552c11b7f6132!8m2!3d9.5133155!4d123.0936274!16s%2Fg%2F11rgx04n_c?entry=ttu&g_ep=EgoyMDI2MDQxNS4wIKXMDSoASAFQAw%3D%3D"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   style={{ color: "#FFFFFF", textDecoration: "underline" }}>
+                  Palanas, Tanjay, Negros Oriental
+                </a>
+              </div>
             </div>
           </div>
           <div className="footer-column">

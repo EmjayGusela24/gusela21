@@ -241,11 +241,8 @@ input::placeholder, textarea::placeholder {
   color: #ffffff !important;
   line-height: 1.5;
 }
-
-.contact-icon {
-  font-size: 20px;
-  color: #94A3B8;
-  margin-top: 2px;
+.contact-item span {
+  color: #ffffff !important;
 }
 
 .nav-link {
