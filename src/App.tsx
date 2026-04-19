@@ -26,7 +26,7 @@ type Candidate = {
 };
 type Admin = { name: string; id: string; isAdmin: boolean };
 type User = Student | Admin;
-type Page = "login" | "admin_setup" | "ballot" | "confirm" | "results" | "admin_voters" | "student_profile" | "candidate_profile" | "print_results" | "my_receipt";
+type Page = "login" | "admin_setup" | "ballot" | "confirm" | "results" | "admin_voters" | "student_profile" | "candidate_profile" | "print_results" | "my_receipt" | "feedback";
 
 const POSITIONS = [
   "President", "Vice President", "Secretary", "Treasurer", "PIO", "Sgt. At Arms",
@@ -158,7 +158,7 @@ const Footer = () => {
       <h4>1. Information We Collect</h4>
       <p>To facilitate secure student elections, we collect and process the following personally identifiable information (PII):</p>
       <ul>
-        <li><strong>Identity Data:</strong> Legal name, Student Identification Number (LRN), and Institutional Email Address.</li>
+        <li><strong>Identity Data:</strong> Legal name, and Student Identification Number (LRN).</li>
         <li><strong>Eligibility Data:</strong> Current academic standing, grade, and enrollment status to verify voting eligibility.</li>
         <li><strong>Technical Data:</strong> IP addresses, browser types, and access timestamps strictly for security and anti-fraud monitoring.</li>
       </ul>
@@ -264,12 +264,13 @@ const Footer = () => {
             flex-direction: column;
             gap: 12px;
             font-size: 13.5px;
+            color: #E2E8F0;
           }
           .contact-item {
             display: flex;
             align-items: flex-start;
             gap: 10px;
-            color: #E2E8F0;
+            color: #FFFFFF;
             line-height: 1.5;
           }
           .contact-icon {
@@ -278,7 +279,7 @@ const Footer = () => {
             margin-top: 2px;
           }
           .nav-link {
-            color: #CBD5E1;
+            color: #E2E8F0;
             text-decoration: none;
             background: none;
             border: none;
@@ -292,7 +293,7 @@ const Footer = () => {
           .supported-by {
             margin-top: 20px;
             font-size: 13.5px;
-            color: #CBD5E1;
+            color: #E2E8F0;
             line-height: 1.6;
           }
           .supported-by a {
@@ -314,7 +315,7 @@ const Footer = () => {
             flex-wrap: wrap;
             gap: 16px;
             font-size: 12.5px;
-            color: #94A3B8;
+            color: #E2E8F0;
             border-top: 1px solid #334155;
           }
           .modal-overlay {
@@ -390,6 +391,12 @@ const Footer = () => {
             .no-print { display: none !important; }
             .confirm-box { box-shadow: none !important; margin: 0; max-width: none; }
             .app-container > *:not(.confirm-box) { display: none !important; }
+            #printable-results { display: block !important; page-break-inside: avoid; }
+            body * { display: none !important; }
+            #printable-results, #printable-results * { display: block !important; }
+            #printable-results { position: absolute; top: 0; left: 0; width: 100%; z-index: 9999; }
+            .confirm-box, .confirm-box * { display: block !important; }
+            .confirm-box { position: absolute; top: 0; left: 0; width: 100%; z-index: 9999; }
           }
         `}
       </style>
@@ -426,9 +433,22 @@ const Footer = () => {
           <div className="footer-column">
             <h4 className="footer-heading">Contact Info</h4>
             <div className="footer-list">
-              <div className="contact-item"><span className="material-symbols-outlined contact-icon">mail</span><a href="mailto:admin@gmail.com" className="nav-link">admin@gmail.com</a></div>
-              <div className="contact-item"><span className="material-symbols-outlined contact-icon">call</span><span>09168562198</span></div>
-              <div className="contact-item"><span className="material-symbols-outlined contact-icon">location_on</span><span>Student Affairs Office</span></div>
+              <div className="contact-item">
+                <span className="material-symbols-outlined contact-icon">mail</span>
+                <a href="https://mail.google.com/mail/?view=cm&fs=1&tf=1&to=emjaygusela@gmail.com" target="_blank" rel="noopener noreferrer" className="nav-link">
+                  admin@gmail.com
+                </a>
+              </div>
+              <div className="contact-item"><span className="material-symbols-outlined contact-icon">call</span><a href="tel:09168562198" className="nav-link">09168562198</a></div>
+              <div className="contact-item">
+                <span className="material-symbols-outlined contact-icon">location_on</span>
+                <a href="https://www.google.com/maps/place/Domingo+Ledesma+Mapa+High+School/@9.5133208,123.0910525,17z/data=!3m1!4b1!4m6!3m5!1s0x33ab7f6a41db8457:0x65552c11b7f6132!8m2!3d9.5133155!4d123.0936274!16s%2Fg%2F11rgx04n_c?entry=ttu&g_ep=EgoyMDI2MDQxNS4wIKXMDSoASAFQAw%3D%3D"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   style={{ color: "#FFFFFF", textDecoration: "underline" }}>
+                  Palanas, Tanjay, Negros Oriental
+                </a>
+              </div>
             </div>
           </div>
           <div className="footer-column">
@@ -660,7 +680,9 @@ const AdminSetup: React.FC<{ setPage: (p: Page) => void; onViewCandidate: (id: s
     if (data) setCandidates(data);
   };
 
-  useEffect(() => { fetchCandidates(); }, []);
+  useEffect(() => {
+    fetchCandidates();
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) setImageFile(e.target.files[0]);
@@ -945,7 +967,7 @@ const StudentProfile: React.FC<{ setPage: (p: Page) => void; studentId: string }
 
       const transformedVotes = (voteData || []).map((vote: any) => ({
         id: vote.id,
-        candidate: vote.candidates?.[0] || { name: '', position: '' }
+        candidate: vote.candidates || { name: '', position: '' }
       }));
 
       setVotes(transformedVotes);
@@ -1094,13 +1116,20 @@ const BallotPage: React.FC<{ setPage: (p: Page) => void; currentUser: Student }>
       await supabase.from('students').update({ has_voted: true }).eq('id', currentUser.id);
 
       const receiptId = Math.random().toString(36).substr(2, 12).toUpperCase();
-      const receipt = {
-        receiptId,
+      console.log("Inserting receipt:", { student_id: currentUser.id, receipt_id: receiptId, student_name: currentUser.name, grade: currentUser.grade });
+      const { error: receiptError } = await supabase.from('receipts').insert([{
+        student_id: currentUser.id,
+        receipt_id: receiptId,
         timestamp: new Date().toISOString(),
-        studentName: currentUser.name,
+        student_name: currentUser.name,
         grade: currentUser.grade
-      };
-      localStorage.setItem(`receipt_${currentUser.id}`, JSON.stringify(receipt));
+      }]);
+      if (receiptError) {
+        console.error("Error saving receipt:", receiptError);
+        // Continue anyway
+      } else {
+        console.log("Receipt saved successfully");
+      }
 
       const { data: updatedStudent } = await supabase
         .from('students')
@@ -1240,14 +1269,14 @@ const ConfirmationScreen: React.FC<{ setPage: (p: Page) => void }> = ({ setPage 
 // --- ResultsDashboard ---
 const ResultsDashboard: React.FC<{ currentUser: User | null; setPage: (p: Page) => void }> = ({ currentUser, setPage }) => {
   const [results, setResults] = useState<{ candidate: Candidate, count: number }[]>([]);
-  const [stats, setStats] = useState({ totalRegistered: 0, totalVotesCast: 0 });
+  const [stats, setStats] = useState({ totalRegistered: 0, totalVotesCast: 0, uniqueVoters: 0 });
   const [viewerImage, setViewerImage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchResults = async () => {
       const [candidatesRes, votesRes, studentsRes] = await Promise.all([
         supabase.from('candidates').select('*'),
-        supabase.from('votes').select('candidate_id'),
+        supabase.from('votes').select('candidate_id, student_id'),
         supabase.from('students').select('id', { count: 'exact' })
       ]);
 
@@ -1260,13 +1289,15 @@ const ResultsDashboard: React.FC<{ currentUser: User | null; setPage: (p: Page) 
         count: votes.filter(v => v.candidate_id === c.id).length
       })).sort((a, b) => b.count - a.count);
 
+      const uniqueVoters = new Set(votes.map(v => v.student_id).filter(id => id)).size; // filter out null/undefined
+
       setResults(tally);
-      setStats({ totalRegistered, totalVotesCast: votes.length });
+      setStats({ totalRegistered, totalVotesCast: votes.length, uniqueVoters });
     };
     fetchResults();
   }, []);
 
-  const turnoutPercent = stats.totalRegistered > 0 ? Math.round((stats.totalVotesCast / stats.totalRegistered) * 100) : 0;
+  const turnoutPercent = stats.totalRegistered > 0 ? Math.round((stats.uniqueVoters / stats.totalRegistered) * 100) : 0;
   const isAdmin = currentUser && 'isAdmin' in currentUser && currentUser.isAdmin;
   const isStudent = currentUser && !isAdmin && 'has_voted' in currentUser;
 
@@ -1288,27 +1319,46 @@ const ResultsDashboard: React.FC<{ currentUser: User | null; setPage: (p: Page) 
             </>
           )}
           {isStudent && (
-            <button 
-              className="btn-light-blue" 
-              onClick={() => setPage("my_receipt")} 
-              style={{ width: "auto", padding: "8px 16px" }}
-            >
-              View My Receipt
-            </button>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              <button 
+                className="btn-outline-wide" 
+                onClick={() => setPage("feedback")} 
+                style={{ width: "auto", padding: "8px 16px" }}
+              >
+                Give Feedback
+              </button>
+              <button 
+                className="btn-light-blue" 
+                onClick={() => currentUser.has_voted ? setPage("my_receipt") : alert("You must vote first to view your receipt.")}
+                disabled={!currentUser.has_voted}
+                style={{ width: "auto", padding: "8px 16px", opacity: currentUser.has_voted ? 1 : 0.5 }}
+              >
+                View My Receipt
+              </button>
+              {!currentUser.has_voted && (
+              <button 
+                className="btn-light-blue" 
+                onClick={() => setPage("ballot")}
+                style={{ width: "auto", padding: "8px 16px" }}
+              >
+                Go to Ballot
+              </button>
+              )}
+            </div>
           )}
         </div>
       </div>
 
       <div className="stat-grid">
-        <div className="stat-box dark-box relative-overflow">
+        <div className="stat-box light relative-overflow">
           <span className="material-symbols-outlined watermark-icon">how_to_vote</span>
-          <span className="overline" style={{ color: "rgba(255,255,255,0.7)" }}>Total Votes Cast</span>
-          <h2 style={{ fontSize: "2rem", color: "white", margin: 0 }}>{stats.totalVotesCast}</h2>
+          <span className="overline">Total Votes Cast</span>
+          <h2 style={{ fontSize: "2rem", margin: 0 }}>{stats.totalVotesCast}</h2>
         </div>
         <div className="stat-box light">
           <span className="overline">Voter Turnout</span>
           <h2 style={{ fontSize: "2rem", margin: 0 }}>{turnoutPercent}%</h2>
-          <p className="mt-1" style={{ fontSize: "11px" }}>{stats.totalVotesCast} of {stats.totalRegistered} registered voters</p>
+          <p className="mt-1" style={{ fontSize: "11px" }}>{stats.uniqueVoters} of {stats.totalRegistered} registered voters</p>
         </div>
       </div>
 
@@ -1340,86 +1390,20 @@ const ResultsDashboard: React.FC<{ currentUser: User | null; setPage: (p: Page) 
   );
 };
 
-// --- My Receipt Page ---
-const MyReceiptPage: React.FC<{ setPage: (p: Page) => void; currentUser: Student }> = ({ setPage, currentUser }) => {
-  const receiptStr = localStorage.getItem(`receipt_${currentUser.id}`);
-  const receipt = receiptStr ? JSON.parse(receiptStr) : null;
-
-  if (!receipt) {
-    return (
-      <div className="screen-content content-max-width">
-        <ReturnButton onClick={() => setPage("results")} />
-        <div className="card-box" style={{ textAlign: "center", padding: "60px 20px" }}>
-          <h2>No Receipt Found</h2>
-          <p>You have not voted yet.</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="screen-content content-max-width">
-      <ReturnButton onClick={() => setPage("results")} />
-      <div style={{ maxWidth: "500px", margin: "40px auto", textAlign: "center" }}>
-        <h1 style={{ marginBottom: "8px" }}>Your Voting Receipt</h1>
-        <p style={{ color: "#64748b", marginBottom: "32px" }}>Keep this for your records</p>
-
-        <div style={{ background: "#f8fafc", border: "2px solid #0B1736", borderRadius: "16px", padding: "32px", textAlign: "left" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px" }}>
-            <span className="material-symbols-outlined" style={{ fontSize: "32px", color: "#0B1736" }}>lock</span>
-            <span style={{ fontWeight: 700, fontSize: "18px", color: "#0B1736" }}>OFFICIAL VOTE RECEIPT</span>
-          </div>
-
-          <div style={{ marginBottom: "20px" }}>
-            <div style={{ fontSize: "13px", color: "#475467", marginBottom: "4px" }}>Receipt ID</div>
-            <div style={{ fontFamily: "monospace", fontSize: "16px", padding: "12px", background: "white", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
-              {receipt.receiptId}
-            </div>
-          </div>
-
-          <div style={{ marginBottom: "20px" }}>
-            <div style={{ fontSize: "13px", color: "#475467", marginBottom: "4px" }}>Voter Name</div>
-            <div style={{ padding: "12px", background: "white", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
-              {receipt.studentName} ({receipt.grade})
-            </div>
-          </div>
-
-          <div>
-            <div style={{ fontSize: "13px", color: "#475467", marginBottom: "4px" }}>Submission Time</div>
-            <div style={{ padding: "12px", background: "white", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
-              {new Date(receipt.timestamp).toLocaleString()}
-            </div>
-          </div>
-
-          <div style={{ marginTop: "32px", paddingTop: "20px", borderTop: "1px dashed #94A3B8", fontSize: "13px", color: "#64748b", textAlign: "center" }}>
-            Your vote is anonymous and has been securely recorded.<br />
-            Thank you for participating in the election.
-          </div>
-        </div>
-
-        <div style={{ marginTop: "32px" }}>
-          <button className="btn-outline-wide" onClick={() => window.print()} style={{ width: "100%", padding: "14px" }}>
-            Print Receipt
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // --- Print Results Page ---
 const PrintResults: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) => {
   const [results, setResults] = useState<{ candidate: Candidate; count: number }[]>([]);
-  const [stats, setStats] = useState({ totalRegistered: 0, totalVotesCast: 0 });
+  const [stats, setStats] = useState({ totalRegistered: 0, totalVotesCast: 0, uniqueVoters: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       const [candRes, voteRes, stuRes] = await Promise.all([
         supabase.from('candidates').select('*'),
-        supabase.from('votes').select('candidate_id'),
+        supabase.from('votes').select('candidate_id, student_id'),
         supabase.from('students').select('id', { count: 'exact' })
       ]);
+      console.log("Print data fetch:", { candRes, voteRes, stuRes });
       const candidates = candRes.data || [];
       const votes = voteRes.data || [];
       const totalRegistered = stuRes.count || 0;
@@ -1429,14 +1413,16 @@ const PrintResults: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) => 
         count: votes.filter(v => v.candidate_id === c.id).length
       })).sort((a, b) => b.count - a.count);
 
+      const uniqueVoters = new Set(votes.map(v => v.student_id)).size;
+      console.log("Processed data:", { tally, totalRegistered, totalVotesCast: votes.length, uniqueVoters });
       setResults(tally);
-      setStats({ totalRegistered, totalVotesCast: votes.length });
+      setStats({ totalRegistered, totalVotesCast: votes.length, uniqueVoters });
       setLoading(false);
     };
     fetchData();
   }, []);
 
-  const turnout = stats.totalRegistered > 0 ? Math.round((stats.totalVotesCast / stats.totalRegistered) * 100) : 0;
+  const turnout = stats.totalRegistered > 0 ? Math.round((stats.uniqueVoters / stats.totalRegistered) * 100) : 0;
 
   if (loading) return <div className="screen-content flex-center">Preparing report...</div>;
 
@@ -1451,7 +1437,7 @@ const PrintResults: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) => 
       <div id="printable-results" style={{ background: "white", padding: "50px", maxWidth: "900px", margin: "0 auto", border: "2px solid #0B1736" }}>
         <h1 style={{ textAlign: "center", marginBottom: "10px", color: "#0B1736" }}>Official Student Election Results</h1>
         <p style={{ textAlign: "center", color: "#555", marginBottom: "40px" }}>Generated on {new Date().toLocaleString()}</p>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "40px", fontSize: "16px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "40px", fontSize: "16px", flexWrap: "wrap", gap: "20px" }}>
           <div><strong>Total Registered Voters:</strong> {stats.totalRegistered}</div>
           <div><strong>Total Votes Cast:</strong> {stats.totalVotesCast}</div>
           <div><strong>Voter Turnout:</strong> {turnout}%</div>
@@ -1483,6 +1469,166 @@ const PrintResults: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) => 
   );
 };
 
+// --- Feedback Page ---
+const FeedbackPage: React.FC<{ setPage: (p: Page) => void; currentUser: Student }> = ({ setPage, currentUser }) => {
+  const [feedback, setFeedback] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!feedback.trim()) return alert("Please enter your feedback.");
+    setLoading(true);
+    const { error } = await supabase.from('feedbacks').insert([{
+      student_id: currentUser.id,
+      feedback: feedback.trim(),
+      created_at: new Date().toISOString()
+    }]);
+    if (error) {
+      alert("Error submitting feedback: " + error.message);
+    } else {
+      setSubmitted(true);
+    }
+    setLoading(false);
+  };
+
+  if (submitted) {
+    return (
+      <div className="screen-content flex-center">
+        <div className="card-box" style={{ textAlign: "center", padding: "60px 20px" }}>
+          <h2>Thank You!</h2>
+          <p>Your feedback has been submitted successfully.</p>
+          <button className="btn-light-blue" onClick={() => setPage("results")} style={{ marginTop: "20px" }}>Back to Results</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="screen-content content-max-width">
+      <ReturnButton onClick={() => setPage("results")} />
+      <div style={{ maxWidth: "600px", margin: "40px auto" }}>
+        <h1 style={{ textAlign: "center", marginBottom: "8px" }}>Share Your Feedback</h1>
+        <p style={{ textAlign: "center", color: "#64748b", marginBottom: "32px" }}>Help us improve the voting experience</p>
+
+        <div className="card-box" style={{ background: "var(--bg-main)" }}>
+          <div style={{ marginBottom: "20px" }}>
+            <label style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px", display: "block" }}>Your Feedback</label>
+            <textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="Please share your thoughts about the voting process, candidates, or any suggestions..."
+              style={{
+                width: "100%",
+                padding: "12px",
+                border: "1px solid var(--border-light)",
+                borderRadius: "6px",
+                background: "var(--bg-main)",
+                fontSize: "14px",
+                minHeight: "120px",
+                fontFamily: "inherit",
+                resize: "vertical"
+              }}
+            />
+          </div>
+          <button className="btn-primary" onClick={handleSubmit} disabled={loading} style={{ width: "100%" }}>
+            {loading ? "Submitting..." : "Submit Feedback"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- My Receipt Page ---
+const MyReceiptPage: React.FC<{ setPage: (p: Page) => void; currentUser: Student }> = ({ setPage, currentUser }) => {
+  const [receipt, setReceipt] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchReceipt = async () => {
+      const { data, error } = await supabase
+        .from('receipts')
+        .select('*')
+        .eq('student_id', currentUser.id)
+        .order('timestamp', { ascending: false });
+      console.log("Receipt fetch result:", { data, error });
+      if (error) {
+        console.error("Error fetching receipt:", error);
+        setReceipt(null);
+      } else if (data && data.length > 0) {
+        setReceipt(data[0]); // Show the most recent receipt
+      } else {
+        setReceipt(null);
+      }
+      setLoading(false);
+    };
+    fetchReceipt();
+  }, [currentUser.id]);
+
+  if (loading) return <div className="screen-content flex-center">Loading receipt...</div>;
+
+  if (!receipt) {
+    return (
+      <div className="screen-content content-max-width">
+        <ReturnButton onClick={() => setPage("results")} />
+        <div className="card-box" style={{ textAlign: "center", padding: "60px 20px" }}>
+          <h2>No Receipt Found</h2>
+          <p>You have not voted yet or there was an error generating your receipt.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="screen-content content-max-width">
+      <ReturnButton onClick={() => setPage("results")} />
+      <div style={{ maxWidth: "500px", margin: "40px auto", textAlign: "center" }}>
+        <h1 style={{ marginBottom: "8px" }}>Your Voting Receipt</h1>
+        <p style={{ color: "#64748b", marginBottom: "32px" }}>Keep this for your records</p>
+
+        <div style={{ background: "#f8fafc", border: "2px solid #0B1736", borderRadius: "16px", padding: "32px", textAlign: "left" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px" }}>
+            <span className="material-symbols-outlined" style={{ fontSize: "32px", color: "#0B1736" }}>lock</span>
+            <span style={{ fontWeight: 700, fontSize: "18px", color: "#0B1736" }}>OFFICIAL VOTE RECEIPT</span>
+          </div>
+
+          <div style={{ marginBottom: "20px" }}>
+            <div style={{ fontSize: "13px", color: "#475467", marginBottom: "4px" }}>Receipt ID</div>
+            <div style={{ fontFamily: "monospace", fontSize: "16px", padding: "12px", background: "white", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+              {receipt.receipt_id}
+            </div>
+          </div>
+
+          <div style={{ marginBottom: "20px" }}>
+            <div style={{ fontSize: "13px", color: "#475467", marginBottom: "4px" }}>Voter Name</div>
+            <div style={{ padding: "12px", background: "white", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+              {receipt.student_name} ({receipt.grade})
+            </div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: "13px", color: "#475467", marginBottom: "4px" }}>Submission Time</div>
+            <div style={{ padding: "12px", background: "white", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+              {new Date(receipt.timestamp).toLocaleString()}
+            </div>
+          </div>
+
+          <div style={{ marginTop: "32px", paddingTop: "20px", borderTop: "1px dashed #94A3B8", fontSize: "13px", color: "#64748b", textAlign: "center" }}>
+            Your vote is anonymous and has been securely recorded.<br />
+            Thank you for participating in the election.
+          </div>
+        </div>
+
+        <div style={{ marginTop: "32px" }}>
+          <button className="btn-outline-wide" onClick={() => window.print()} style={{ width: "100%", padding: "14px" }}>
+            Print Receipt
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- Main App ---
 const App: React.FC = () => {
   const [page, setPage] = useState<Page>("login");
@@ -1503,7 +1649,7 @@ const App: React.FC = () => {
           const { data } = await supabase.from('students').select('*').eq('id', user.id).single();
           if (data) {
             setCurrentUser(data as Student);
-            setPage(data.has_voted ? "results" : "ballot");
+            setPage("results");
             localStorage.setItem("currentUser", JSON.stringify(data));
           } else {
             handleLogout();
@@ -1547,6 +1693,7 @@ const App: React.FC = () => {
       {page === "candidate_profile" && selectedCandidateId && <CandidateProfile setPage={setPage} candidateId={selectedCandidateId} />}
       {page === "print_results" && <PrintResults setPage={setPage} />}
       {page === "my_receipt" && currentUser && !('isAdmin' in currentUser) && <MyReceiptPage setPage={setPage} currentUser={currentUser as Student} />}
+      {page === "feedback" && currentUser && !('isAdmin' in currentUser) && <FeedbackPage setPage={setPage} currentUser={currentUser as Student} />}
 
       <Footer />
     </div>
