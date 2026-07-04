@@ -1,0 +1,354 @@
+import React, { useState, useEffect } from "react";
+import { supabase } from "../supabase";
+import { Candidate, Page, POSITIONS } from "../types";
+import { fileToBase64, base64ToImageUrl } from "../utils/imageUtils";
+
+const AdminSetup: React.FC<{
+  setPage: (p: Page) => void;
+  onViewCandidate: (id: string) => void;
+}> = ({ setPage, onViewCandidate }) => {
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null);
+  const [form, setForm] = useState({ name: "", position: POSITIONS[0] as string, image_url: "", campaign_text: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Election Countdown states
+  const [electionEndTime, setElectionEndTime] = useState<string | null>(null);
+  const [timerInput, setTimerInput] = useState("");
+  const [savingTimer, setSavingTimer] = useState(false);
+
+  const fetchElectionSettings = async () => {
+    const { data, error } = await supabase
+      .from("election_settings")
+      .select("end_time")
+      .eq("id", 1)
+      .maybeSingle();
+
+    if (!error && data) {
+      setElectionEndTime(data.end_time);
+      if (data.end_time) {
+        // Convert ISO timestamp to local YYYY-MM-DDTHH:MM for datetime-local input
+        const localDate = new Date(data.end_time);
+        const tzOffset = localDate.getTimezoneOffset() * 60000;
+        const localISOTime = (new Date(localDate.getTime() - tzOffset)).toISOString().slice(0, 16);
+        setTimerInput(localISOTime);
+      }
+    }
+  };
+
+  const handleSaveTimer = async () => {
+    if (!timerInput) return alert("Please select a date and time.");
+    setSavingTimer(true);
+
+    // Parse input date into ISO format for Postgres timestamptz
+    const utcDate = new Date(timerInput).toISOString();
+
+    const { error } = await supabase
+      .from("election_settings")
+      .upsert({ id: 1, end_time: utcDate });
+
+    if (error) {
+      alert("Failed to save election timer: " + error.message);
+    } else {
+      setElectionEndTime(utcDate);
+      alert("Election countdown timer set successfully!");
+    }
+    setSavingTimer(false);
+  };
+
+  const handleClearTimer = async () => {
+    if (!window.confirm("Are you sure you want to stop/clear the election countdown timer?")) return;
+    setSavingTimer(true);
+
+    const { error } = await supabase
+      .from("election_settings")
+      .upsert({ id: 1, end_time: null });
+
+    if (error) {
+      alert("Failed to clear election timer: " + error.message);
+    } else {
+      setElectionEndTime(null);
+      setTimerInput("");
+      alert("Election countdown timer cleared successfully.");
+    }
+    setSavingTimer(false);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      const file = e.target.files[0];
+      const base64 = await fileToBase64(file);
+      setForm({ ...form, image_url: base64 });
+    }
+  };
+
+  const handleSaveCandidate = async () => {
+    if (!form.name || !form.position) return alert("Name and Position are required.");
+    setIsSubmitting(true);
+    if (editingCandidate) {
+      await supabase.from("candidates").update({
+        name: form.name,
+        position: form.position,
+        image_url: form.image_url,
+        campaign_text: form.campaign_text,
+      }).eq("id", editingCandidate.id);
+    } else {
+      await supabase.from("candidates").insert([{
+        name: form.name,
+        position: form.position,
+        image_url: form.image_url,
+        campaign_text: form.campaign_text,
+      }]);
+    }
+    await fetchCandidates();
+    setEditingCandidate(null);
+    setForm({ name: "", position: POSITIONS[0], image_url: "", campaign_text: "" });
+    setIsSubmitting(false);
+  };
+
+  const handleEdit = (c: Candidate) => {
+    setEditingCandidate(c);
+    setForm({
+      name: c.name,
+      position: c.position as (typeof POSITIONS)[number],
+      image_url: c.image_url || "",
+      campaign_text: c.campaign_text || ""
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this candidate?")) return;
+    setIsSubmitting(true);
+    await supabase.from("candidates").delete().eq("id", id);
+    await fetchCandidates();
+    setIsSubmitting(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCandidate(null);
+    setForm({ name: "", position: POSITIONS[0], image_url: "", campaign_text: "" });
+  };
+
+  const fetchCandidates = async () => {
+    const { data, error } = await supabase
+      .from("candidates")
+      .select("id, position, name, image_url, campaign_text")
+      .order("position");
+
+    if (error || !data) {
+      setCandidates([]);
+      return;
+    }
+
+    setCandidates(data as Candidate[]);
+  };
+
+  useEffect(() => {
+    fetchCandidates();
+    fetchElectionSettings();
+  }, []);
+
+
+
+  const grouped = POSITIONS.reduce<Record<string, Candidate[]>>((acc, pos) => {
+    acc[pos] = candidates.filter((c) => c.position === pos);
+    return acc;
+  }, {});
+
+  return (
+    <div className="screen-content content-max-width">
+      <div className="flex-between" style={{ marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
+        <div className="dashboard-header-flex" style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
+          <div>
+            <h1>Admin Dashboard</h1>
+            <p>Phase 1: Pre-Election Setup</p>
+          </div>
+          <div className="dashboard-logos">
+            <img
+              src="/image.png"
+              alt="Logo 1"
+              className="dashboard-logo-img"
+            />
+            <img
+              src="/image copy.png"
+              alt="Logo 2"
+              className="dashboard-logo-img"
+            />
+          </div>
+        </div>
+        <div className="action-buttons" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          <button className="btn-outline-wide" onClick={() => setPage("admin_register")}>Register Student</button>
+          <button className="btn-outline-wide" onClick={() => setPage("admin_voters")}>Voters List</button>
+          <button className="btn-outline-wide" onClick={() => setPage("results")}>Live Results</button>
+          <button className="btn-outline-wide" onClick={() => setPage("download_results")}>Download Results</button>
+        </div>
+      </div>
+
+      <div className="status-card" style={{ marginBottom: "24px" }}>
+        <h2 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span className="material-symbols-outlined" style={{ width: "32px", height: "32px", fontSize: "18px" }}>
+            {editingCandidate ? 'edit' : 'person_add'}
+          </span>
+          {editingCandidate ? 'Edit Candidate' : 'Add New Candidate'}
+        </h2>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "16px" }}>
+          <input
+            name="name"
+            placeholder="Candidate Name"
+            value={form.name}
+            onChange={handleInputChange}
+          />
+          <select
+            name="position"
+            value={form.position}
+            onChange={handleInputChange}
+            style={{ padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)" }}
+          >
+            {POSITIONS.map((pos) => (
+              <option key={pos} value={pos}>{pos}</option>
+            ))}
+          </select>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            {form.image_url && (
+              <img
+                src={base64ToImageUrl(form.image_url) || form.image_url}
+                alt="Preview"
+                style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-light)" }}
+                onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(form.name || "Candidate")}&background=E8F0FE&color=0B1736`; }}
+              />
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              style={{ flex: 1, padding: "10px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)" }}
+            />
+          </div>
+          <textarea
+            name="campaign_text"
+            placeholder="Campaign Platform / Biography (optional)"
+            value={form.campaign_text}
+            onChange={handleInputChange}
+            style={{ minHeight: "100px", padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px" }}
+          />
+          <div className="action-buttons" style={{ display: "flex", gap: "8px" }}>
+            <button className="btn-primary" onClick={handleSaveCandidate} disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : editingCandidate ? "Update Candidate" : "Add Candidate"}
+            </button>
+            {editingCandidate && (
+              <button className="btn-outline-wide" onClick={handleCancelEdit} disabled={isSubmitting}>
+                Cancel
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="status-card" style={{ marginBottom: "24px" }}>
+        <h2 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span className="material-symbols-outlined" style={{ width: "32px", height: "32px", fontSize: "18px" }}>
+            timer
+          </span>
+          Election Countdown Settings
+        </h2>
+        <p style={{ fontSize: "13.5px", color: "var(--text-muted)", marginTop: "4px" }}>
+          Set a voting deadline. The system will show a live countdown to students and automatically lock the voting once the timer expires.
+        </p>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "16px" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", alignItems: "flex-end" }}>
+            <div style={{ flex: 1, minWidth: "240px" }}>
+              <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: "6px" }}>
+                Select Voting Cutoff Date & Time
+              </label>
+              <input
+                type="datetime-local"
+                value={timerInput}
+                onChange={(e) => setTimerInput(e.target.value)}
+                style={{ width: "100%", padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)" }}
+              />
+            </div>
+            <div className="action-buttons" style={{ display: "flex", gap: "8px" }}>
+              <button className="btn-primary" onClick={handleSaveTimer} disabled={savingTimer} style={{ padding: "12px 20px" }}>
+                {savingTimer ? "Saving..." : "Set Deadline"}
+              </button>
+              {electionEndTime && (
+                <button className="btn-outline-wide" onClick={handleClearTimer} disabled={savingTimer} style={{ padding: "12px 20px", color: "#D92D20", borderColor: "#FEE4E2" }}>
+                  Clear Timer
+                </button>
+              )}
+            </div>
+          </div>
+
+          {electionEndTime && (
+            <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: "8px", padding: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <span className="material-symbols-outlined" style={{ color: "#16A34A" }}>
+                check_circle
+              </span>
+              <span style={{ fontSize: "13.5px", color: "#166534", fontWeight: 500 }}>
+                Active Deadline: <strong>{new Date(electionEndTime).toLocaleString()}</strong>
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
+
+      <div style={{ background: "white", padding: "32px", borderRadius: "24px", border: "1px solid var(--border-light)", boxShadow: "0 10px 40px rgba(11,23,54,0.06)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "32px" }}>
+          <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "var(--primary-navy)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(11,23,54,0.2)" }}>
+            <span className="material-symbols-outlined" style={{ fontSize: "24px" }}>groups</span>
+          </div>
+          <h3 style={{ margin: 0, fontSize: "24px", color: "var(--primary-navy)", fontWeight: 800 }}>Current Candidates by Position</h3>
+        </div>
+
+        {POSITIONS.map((position) => {
+          const posCandidates = grouped[position] || [];
+          if (!posCandidates.length) return null;
+
+          return (
+            <div key={position} style={{ marginBottom: "32px" }}>
+              <div style={{ display: "inline-block", padding: "6px 16px", background: "#f1f5f9", color: "#334155", borderRadius: "8px", fontSize: "14px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "16px" }}>
+                {position}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                {posCandidates.map((c) => (
+                  <div key={c.id} style={{ padding: "20px 24px", background: "linear-gradient(145deg, #ffffff, #f8fafc)", borderRadius: "16px", border: "1px solid var(--border-light)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "20px", transition: "transform 0.2s ease, box-shadow 0.2s ease" }} className="hover-lift">
+                    <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+                      <img
+                        src={base64ToImageUrl(c.image_url) || `https://ui-avatars.com/api/?name=${c.name}&background=E8F0FE&color=0B1736`}
+                        alt={c.name}
+                        style={{ width: "56px", height: "56px", borderRadius: "50%", objectFit: "cover", border: "2px solid white", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
+                        onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=E8F0FE&color=0B1736`; }}
+                      />
+                      <h4 style={{ margin: 0, fontSize: "18px", color: "var(--primary-navy)", fontWeight: 700 }}>{c.name}</h4>
+                    </div>
+                    <div className="action-buttons" style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                      <button className="btn-light-blue" onClick={() => onViewCandidate(c.id)} style={{ padding: "9px 18px", fontSize: "13px" }}>
+                        View Profile
+                      </button>
+                      <button className="btn-outline-wide" onClick={() => handleEdit(c)} style={{ padding: "9px 18px", fontSize: "13px" }}>
+                        Edit
+                      </button>
+                      <button className="btn-outline-wide" onClick={() => handleDelete(c.id)} style={{ padding: "9px 18px", fontSize: "13px", color: "#D92D20", borderColor: "#FEE4E2" }}>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+export default AdminSetup;
