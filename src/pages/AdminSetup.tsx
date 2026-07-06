@@ -9,7 +9,8 @@ const AdminSetup: React.FC<{
 }> = ({ setPage, onViewCandidate }) => {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null);
-  const [form, setForm] = useState({ name: "", position: POSITIONS[0] as string, image_url: "", campaign_text: "" });
+  const [form, setForm] = useState({ name: "", position: POSITIONS[0] as string, image_url: "", campaign_text: "", age: "", section: "" });
+  const [collapsedPositions, setCollapsedPositions] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Election Countdown states
@@ -87,26 +88,43 @@ const AdminSetup: React.FC<{
   };
 
   const handleSaveCandidate = async () => {
-    if (!form.name || !form.position) return alert("Name and Position are required.");
+    if (!form.name.trim() || !form.position) {
+      return alert("Name and Position are required.");
+    }
+    if (!form.age.trim()) {
+      return alert("Age is required.");
+    }
+    const parsedAge = parseInt(form.age, 10);
+    if (isNaN(parsedAge) || parsedAge < 5 || parsedAge > 100) {
+      return alert("Please enter a valid age between 5 and 100.");
+    }
+    if (!form.section.trim()) {
+      return alert("Section is required.");
+    }
+
     setIsSubmitting(true);
     if (editingCandidate) {
       await supabase.from("candidates").update({
-        name: form.name,
+        name: form.name.trim(),
         position: form.position,
         image_url: form.image_url,
-        campaign_text: form.campaign_text,
+        campaign_text: form.campaign_text.trim(),
+        age: parsedAge,
+        section: form.section.trim(),
       }).eq("id", editingCandidate.id);
     } else {
       await supabase.from("candidates").insert([{
-        name: form.name,
+        name: form.name.trim(),
         position: form.position,
         image_url: form.image_url,
-        campaign_text: form.campaign_text,
+        campaign_text: form.campaign_text.trim(),
+        age: parsedAge,
+        section: form.section.trim(),
       }]);
     }
     await fetchCandidates();
     setEditingCandidate(null);
-    setForm({ name: "", position: POSITIONS[0], image_url: "", campaign_text: "" });
+    setForm({ name: "", position: POSITIONS[0], image_url: "", campaign_text: "", age: "", section: "" });
     setIsSubmitting(false);
   };
 
@@ -116,7 +134,9 @@ const AdminSetup: React.FC<{
       name: c.name,
       position: c.position as (typeof POSITIONS)[number],
       image_url: c.image_url || "",
-      campaign_text: c.campaign_text || ""
+      campaign_text: c.campaign_text || "",
+      age: c.age !== undefined && c.age !== null ? String(c.age) : "",
+      section: c.section || ""
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -131,13 +151,13 @@ const AdminSetup: React.FC<{
 
   const handleCancelEdit = () => {
     setEditingCandidate(null);
-    setForm({ name: "", position: POSITIONS[0], image_url: "", campaign_text: "" });
+    setForm({ name: "", position: POSITIONS[0], image_url: "", campaign_text: "", age: "", section: "" });
   };
 
   const fetchCandidates = async () => {
     const { data, error } = await supabase
       .from("candidates")
-      .select("id, position, name, image_url, campaign_text")
+      .select("id, position, name, image_url, campaign_text, age, section")
       .order("position");
 
     if (error || !data) {
@@ -189,113 +209,132 @@ const AdminSetup: React.FC<{
         </div>
       </div>
 
-      <div className="status-card" style={{ marginBottom: "24px" }}>
-        <h2 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span className="material-symbols-outlined" style={{ width: "32px", height: "32px", fontSize: "18px" }}>
-            {editingCandidate ? 'edit' : 'person_add'}
-          </span>
-          {editingCandidate ? 'Edit Candidate' : 'Add New Candidate'}
-        </h2>
+      <div className="admin-setup-forms-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))", gap: "24px", marginBottom: "24px", alignItems: "start" }}>
+        <div className="status-card">
+          <h2 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span className="material-symbols-outlined" style={{ width: "32px", height: "32px", fontSize: "18px" }}>
+              {editingCandidate ? 'edit' : 'person_add'}
+            </span>
+            {editingCandidate ? 'Edit Candidate' : 'Add New Candidate'}
+          </h2>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "16px" }}>
-          <input
-            name="name"
-            placeholder="Candidate Name"
-            value={form.name}
-            onChange={handleInputChange}
-          />
-          <select
-            name="position"
-            value={form.position}
-            onChange={handleInputChange}
-            style={{ padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)" }}
-          >
-            {POSITIONS.map((pos) => (
-              <option key={pos} value={pos}>{pos}</option>
-            ))}
-          </select>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            {form.image_url && (
-              <img
-                src={base64ToImageUrl(form.image_url) || form.image_url}
-                alt="Preview"
-                style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-light)" }}
-                onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(form.name || "Candidate")}&background=E8F0FE&color=0B1736`; }}
-              />
-            )}
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "16px" }}>
             <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              style={{ flex: 1, padding: "10px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)" }}
+              name="name"
+              placeholder="Candidate Name"
+              value={form.name}
+              onChange={handleInputChange}
             />
-          </div>
-          <textarea
-            name="campaign_text"
-            placeholder="Campaign Platform / Biography (optional)"
-            value={form.campaign_text}
-            onChange={handleInputChange}
-            style={{ minHeight: "100px", padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px" }}
-          />
-          <div className="action-buttons" style={{ display: "flex", gap: "8px" }}>
-            <button className="btn-primary" onClick={handleSaveCandidate} disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : editingCandidate ? "Update Candidate" : "Add Candidate"}
-            </button>
-            {editingCandidate && (
-              <button className="btn-outline-wide" onClick={handleCancelEdit} disabled={isSubmitting}>
-                Cancel
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="status-card" style={{ marginBottom: "24px" }}>
-        <h2 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span className="material-symbols-outlined" style={{ width: "32px", height: "32px", fontSize: "18px" }}>
-            timer
-          </span>
-          Election Countdown Settings
-        </h2>
-        <p style={{ fontSize: "13.5px", color: "var(--text-muted)", marginTop: "4px" }}>
-          Set a voting deadline. The system will show a live countdown to students and automatically lock the voting once the timer expires.
-        </p>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "16px" }}>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", alignItems: "flex-end" }}>
-            <div style={{ flex: 1, minWidth: "240px" }}>
-              <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: "6px" }}>
-                Select Voting Cutoff Date & Time
-              </label>
+            <select
+              name="position"
+              value={form.position}
+              onChange={handleInputChange}
+              style={{ padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)" }}
+            >
+              {POSITIONS.map((pos) => (
+                <option key={pos} value={pos}>{pos}</option>
+              ))}
+            </select>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
               <input
-                type="datetime-local"
-                value={timerInput}
-                onChange={(e) => setTimerInput(e.target.value)}
-                style={{ width: "100%", padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)" }}
+                type="number"
+                name="age"
+                placeholder="Age"
+                value={form.age}
+                onChange={handleInputChange}
+                min="5"
+                max="100"
+              />
+              <input
+                name="section"
+                placeholder="Section"
+                value={form.section}
+                onChange={handleInputChange}
               />
             </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              {form.image_url && (
+                <img
+                  src={base64ToImageUrl(form.image_url) || form.image_url}
+                  alt="Preview"
+                  style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-light)" }}
+                  onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(form.name || "Candidate")}&background=E8F0FE&color=0B1736`; }}
+                />
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                style={{ flex: 1, padding: "10px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)" }}
+              />
+            </div>
+            <textarea
+              name="campaign_text"
+              placeholder="Campaign Platform / Biography (optional)"
+              value={form.campaign_text}
+              onChange={handleInputChange}
+              style={{ minHeight: "100px", padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px" }}
+            />
             <div className="action-buttons" style={{ display: "flex", gap: "8px" }}>
-              <button className="btn-primary" onClick={handleSaveTimer} disabled={savingTimer} style={{ padding: "12px 20px" }}>
-                {savingTimer ? "Saving..." : "Set Deadline"}
+              <button className="btn-primary" onClick={handleSaveCandidate} disabled={isSubmitting}>
+                {isSubmitting ? "Saving..." : editingCandidate ? "Update Candidate" : "Add Candidate"}
               </button>
-              {electionEndTime && (
-                <button className="btn-outline-wide" onClick={handleClearTimer} disabled={savingTimer} style={{ padding: "12px 20px", color: "#D92D20", borderColor: "#FEE4E2" }}>
-                  Clear Timer
+              {editingCandidate && (
+                <button className="btn-outline-wide" onClick={handleCancelEdit} disabled={isSubmitting}>
+                  Cancel
                 </button>
               )}
             </div>
           </div>
+        </div>
 
-          {electionEndTime && (
-            <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: "8px", padding: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
-              <span className="material-symbols-outlined" style={{ color: "#16A34A" }}>
-                check_circle
-              </span>
-              <span style={{ fontSize: "13.5px", color: "#166534", fontWeight: 500 }}>
-                Active Deadline: <strong>{new Date(electionEndTime).toLocaleString()}</strong>
-              </span>
+        <div className="status-card">
+          <h2 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span className="material-symbols-outlined" style={{ width: "32px", height: "32px", fontSize: "18px" }}>
+              timer
+            </span>
+            Election Countdown Settings
+          </h2>
+          <p style={{ fontSize: "13.5px", color: "var(--text-muted)", marginTop: "4px" }}>
+            Set a voting deadline. The system will show a live countdown to students and automatically lock the voting once the timer expires.
+          </p>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "16px" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", alignItems: "flex-end" }}>
+              <div style={{ flex: 1, minWidth: "240px" }}>
+                <label style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: "6px" }}>
+                  Select Voting Cutoff Date & Time
+                </label>
+                <input
+                  type="datetime-local"
+                  value={timerInput}
+                  onChange={(e) => setTimerInput(e.target.value)}
+                  style={{ width: "100%", padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)" }}
+                />
+              </div>
+              <div className="action-buttons" style={{ display: "flex", gap: "8px" }}>
+                <button className="btn-primary" onClick={handleSaveTimer} disabled={savingTimer} style={{ padding: "12px 20px" }}>
+                  {savingTimer ? "Saving..." : "Set Deadline"}
+                </button>
+                {electionEndTime && (
+                  <button className="btn-outline-wide" onClick={handleClearTimer} disabled={savingTimer} style={{ padding: "12px 20px", color: "#D92D20", borderColor: "#FEE4E2" }}>
+                    Clear Timer
+                  </button>
+                )}
+              </div>
             </div>
-          )}
+
+            {electionEndTime && (
+              <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: "8px", padding: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+                <span className="material-symbols-outlined" style={{ color: "#16A34A" }}>
+                  check_circle
+                </span>
+                <span style={{ fontSize: "13.5px", color: "#166534", fontWeight: 500 }}>
+                  Active Deadline: <strong>{new Date(electionEndTime).toLocaleString()}</strong>
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -311,38 +350,87 @@ const AdminSetup: React.FC<{
         {POSITIONS.map((position) => {
           const posCandidates = grouped[position] || [];
           if (!posCandidates.length) return null;
+          const isCollapsed = collapsedPositions[position];
 
           return (
-            <div key={position} style={{ marginBottom: "32px" }}>
-              <div style={{ display: "inline-block", padding: "6px 16px", background: "#f1f5f9", color: "#334155", borderRadius: "8px", fontSize: "14px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "16px" }}>
-                {position}
+            <div key={position} style={{ marginBottom: "24px" }}>
+              <div
+                onClick={() => setCollapsedPositions(prev => ({ ...prev, [position]: !prev[position] }))}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "14px 20px",
+                  background: "linear-gradient(135deg, #f8fafc, #f1f5f9)",
+                  color: "#334155",
+                  borderRadius: "12px",
+                  cursor: "pointer",
+                  userSelect: "none",
+                  marginBottom: isCollapsed ? "0" : "16px",
+                  border: "1px solid var(--border-light)",
+                  transition: "background 0.2s ease"
+                }}
+                className="hover-lift"
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <span style={{ fontSize: "14px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--primary-navy)" }}>
+                    {position}
+                  </span>
+                  <span className="badge-light-blue" style={{ fontSize: "12px", padding: "3px 10px", borderRadius: "6px" }}>
+                    {posCandidates.length} {posCandidates.length === 1 ? 'Candidate' : 'Candidates'}
+                  </span>
+                </div>
+                <span className="material-symbols-outlined" style={{
+                  transform: isCollapsed ? "rotate(-90deg)" : "rotate(0deg)",
+                  transition: "transform 0.2s ease",
+                  color: "var(--text-muted)"
+                }}>
+                  expand_more
+                </span>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                {posCandidates.map((c) => (
-                  <div key={c.id} style={{ padding: "20px 24px", background: "linear-gradient(145deg, #ffffff, #f8fafc)", borderRadius: "16px", border: "1px solid var(--border-light)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "20px", transition: "transform 0.2s ease, box-shadow 0.2s ease" }} className="hover-lift">
-                    <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-                      <img
-                        src={base64ToImageUrl(c.image_url) || `https://ui-avatars.com/api/?name=${c.name}&background=E8F0FE&color=0B1736`}
-                        alt={c.name}
-                        style={{ width: "56px", height: "56px", borderRadius: "50%", objectFit: "cover", border: "2px solid white", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
-                        onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=E8F0FE&color=0B1736`; }}
-                      />
-                      <h4 style={{ margin: 0, fontSize: "18px", color: "var(--primary-navy)", fontWeight: 700 }}>{c.name}</h4>
+
+              {!isCollapsed && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                  {posCandidates.map((c) => (
+                    <div key={c.id} style={{ padding: "20px 24px", background: "linear-gradient(145deg, #ffffff, #f8fafc)", borderRadius: "16px", border: "1px solid var(--border-light)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "20px", transition: "transform 0.2s ease, box-shadow 0.2s ease" }} className="hover-lift">
+                      <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+                        <img
+                          src={base64ToImageUrl(c.image_url) || `https://ui-avatars.com/api/?name=${c.name}&background=E8F0FE&color=0B1736`}
+                          alt={c.name}
+                          style={{ width: "56px", height: "56px", borderRadius: "50%", objectFit: "cover", border: "2px solid white", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
+                          onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=E8F0FE&color=0B1736`; }}
+                        />
+                        <div>
+                          <h4 style={{ margin: "0 0 4px 0", fontSize: "18px", color: "var(--primary-navy)", fontWeight: 700 }}>{c.name}</h4>
+                          <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                            {c.age && (
+                              <span style={{ fontSize: "11px", background: "#EFF6FF", color: "#1E40AF", padding: "2px 8px", borderRadius: "4px", fontWeight: 700 }}>
+                                Age: {c.age}
+                              </span>
+                            )}
+                            {c.section && (
+                              <span style={{ fontSize: "11px", background: "#ECFDF5", color: "#065F46", padding: "2px 8px", borderRadius: "4px", fontWeight: 700 }}>
+                                Section: {c.section}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="action-buttons" style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                        <button className="btn-light-blue" onClick={() => onViewCandidate(c.id)} style={{ padding: "9px 18px", fontSize: "13px" }}>
+                          View Profile
+                        </button>
+                        <button className="btn-outline-wide" onClick={() => handleEdit(c)} style={{ padding: "9px 18px", fontSize: "13px" }}>
+                          Edit
+                        </button>
+                        <button className="btn-outline-wide" onClick={() => handleDelete(c.id)} style={{ padding: "9px 18px", fontSize: "13px", color: "#D92D20", borderColor: "#FEE4E2" }}>
+                          Delete
+                        </button>
+                      </div>
                     </div>
-                    <div className="action-buttons" style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-                      <button className="btn-light-blue" onClick={() => onViewCandidate(c.id)} style={{ padding: "9px 18px", fontSize: "13px" }}>
-                        View Profile
-                      </button>
-                      <button className="btn-outline-wide" onClick={() => handleEdit(c)} style={{ padding: "9px 18px", fontSize: "13px" }}>
-                        Edit
-                      </button>
-                      <button className="btn-outline-wide" onClick={() => handleDelete(c.id)} style={{ padding: "9px 18px", fontSize: "13px", color: "#D92D20", borderColor: "#FEE4E2" }}>
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}

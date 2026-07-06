@@ -1,0 +1,510 @@
+/* Custom Checkbox for Policy Agreement */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  user-select: none;
+}
+
+.checkbox-input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkbox-custom {
+  position: relative;
+  height: 22px;
+  width: 22px;
+  background-color: #FFFFFF;
+  border: 2px solid #D0D5DD;
+  border-radius: 6px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.checkbox-label:hover .checkbox-custom {
+  border-color: var(--primary-navy);
+  background-color: #F8FAFC;
+}
+
+.checkbox-input:checked~.checkbox-custom {
+  background-color: var(--accent-teal);
+  border-color: var(--accent-teal);
+  box-shadow: 0 0 0 4px rgba(18, 183, 106, 0.15);
+}
+
+.checkbox-custom .check-icon {
+  font-size: 16px !important;
+  color: white !important;
+  font-weight: 900;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.checkbox-input:checked~.checkbox-custom .check-icon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.checkbox-text {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #475467 !important;
+  font-weight: 500;
+}
+
+/* Modal and Policy specific classes */
+.policy-modal-container {
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  background: #FFFFFF;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(11, 23, 54, 0.15), 0 1px 3px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalScaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid rgba(11, 23, 54, 0.08);
+}
+
+@keyframes modalScaleUp {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.policy-modal-header {
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid #F2F4F7;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.policy-modal-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary-navy) !important;
+  margin: 0;
+}
+
+.policy-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--accent-blue);
+  color: var(--primary-navy);
+}
+
+.policy-modal-body {
+  padding: 20px 28px;
+  overflow-y: auto;
+  flex-grow: 1;
+  max-height: 450px;
+}
+
+/* Custom Sleek Scrollbar */
+.policy-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.policy-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.policy-modal-body::-webkit-scrollbar-thumb {
+  background: #E4E7EC;
+  border-radius: 3px;
+}
+
+.policy-modal-body::-webkit-scrollbar-thumb:hover {
+  background: #D0D5DD;
+}
+
+.policy-intro {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: #475467 !important;
+  margin-bottom: 24px;
+}
+
+.policy-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--primary-navy) !important;
+  margin: 20px 0 10px;
+}
+
+.policy-section-title:first-of-type {
+  margin-top: 0;
+}
+
+.policy-section-list {
+  margin-left: 20px;
+  margin-bottom: 16px;
+}
+
+.policy-section-list li {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #475467 !important;
+  margin-bottom: 8px;
+}
+
+.policy-section-text {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #475467 !important;
+  margin-bottom: 16px;
+}
+
+.policy-footer {
+  padding: 20px 28px 24px;
+  border-top: 1px solid #F2F4F7;
+  background: #FAFCFF;
+  display: flex;
+  flex-direction: column;
+}
+
+.policy-accept-btn {
+  width: 100%;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 10px;
+  background: var(--primary-navy);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.policy-accept-btn:hover:not(:disabled) {
+  background: var(--secondary-navy);
+}
+
+.policy-accept-btn:disabled {
+  background: #F2F4F7;
+  color: #98A2B3;
+  cursor: not-allowed;
+}
+
+.policy-divider {
+  height: 1px;
+  background-color: #EAECF0;
+  margin: 24px 0;
+  border: none;
+}
+
+/* Spacing and typography within policy body content */
+.policy-modal-body p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #475467 !important;
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-weight: 400 !important;
+}
+
+.policy-modal-body h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--primary-navy) !important;
+  margin-top: 24px;
+  margin-bottom: 12px;
+}
+
+.policy-modal-body ul,
+.policy-modal-body ol {
+  margin-top: 0;
+  margin-bottom: 20px;
+  margin-left: 20px;
+  padding: 0;
+}
+
+.policy-modal-body li {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #475467 !important;
+  margin-bottom: 10px;
+  font-weight: 400 !important;
+}
+
+.policy-modal-body strong {
+  color: var(--primary-navy) !important;
+  font-weight: 600;
+}
+
+/* ====================== ABOUT MODAL CONTENT STYLES ====================== */
+
+/* Shared body adjustments for the about modal */
+.about-modal-body {
+  padding: 24px 28px 32px;
+}
+
+.about-intro {
+  font-size: 14px;
+  line-height: 1.75;
+  color: #475467 !important;
+  margin-bottom: 20px;
+  font-weight: 400 !important;
+  padding: 12px 16px;
+  background: #F8FAFC;
+  border-left: 3px solid var(--primary-navy);
+  border-radius: 0 8px 8px 0;
+}
+
+/* ---- FAQ (Help Center) ---- */
+.about-faq-item {
+  padding: 18px 20px;
+  background: #F8FAFC;
+  border: 1px solid #E9ECF0;
+  border-radius: 12px;
+  margin-bottom: 14px;
+}
+
+.about-faq-item:last-child {
+  margin-bottom: 0;
+}
+
+.about-faq-q {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary-navy) !important;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.about-faq-icon {
+  font-size: 20px !important;
+  color: var(--primary-navy) !important;
+  flex-shrink: 0;
+}
+
+.about-faq-a {
+  font-size: 13.5px !important;
+  line-height: 1.7;
+  color: #475467 !important;
+  font-weight: 400 !important;
+  margin: 0 0 12px 0 !important;
+  padding-left: 30px;
+}
+
+/* Privacy policy bullet lists inside FAQ-style cards */
+.about-privacy-list {
+  margin: 0 0 0 30px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.about-privacy-list li {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: #475467 !important;
+  font-weight: 400 !important;
+}
+
+.about-privacy-list strong {
+  color: var(--primary-navy) !important;
+  font-weight: 600;
+}
+
+
+/* ---- Timeline (Election Process) ---- */
+.about-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.about-timeline-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+  background: #F8FAFC;
+  border: 1px solid #E9ECF0;
+  border-radius: 12px;
+  transition: box-shadow 0.2s ease;
+}
+
+.about-timeline-item:hover {
+  box-shadow: 0 4px 12px rgba(11, 23, 54, 0.08);
+}
+
+.about-timeline-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.about-timeline-badge .material-symbols-outlined {
+  font-size: 22px !important;
+}
+
+.about-timeline-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.about-timeline-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #94A3B8 !important;
+  margin-bottom: 2px;
+}
+
+.about-timeline-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary-navy) !important;
+  line-height: 1.3;
+}
+
+.about-timeline-date {
+  font-size: 13px;
+  color: #475467 !important;
+  font-weight: 400 !important;
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+/* ---- Numbered Rule Cards ---- */
+.about-rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.about-rule-card {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 18px 20px;
+  background: #F8FAFC;
+  border: 1px solid #E9ECF0;
+  border-radius: 12px;
+  transition: box-shadow 0.2s ease;
+}
+
+.about-rule-card:hover {
+  box-shadow: 0 4px 12px rgba(11, 23, 54, 0.08);
+}
+
+.about-rule-card--danger {
+  background: #FFF5F5;
+  border-color: #FEC5BB;
+}
+
+.about-rule-number {
+  font-size: 26px;
+  font-weight: 900;
+  color: #E2E8F0 !important;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 36px;
+  text-align: center;
+  padding-top: 3px;
+  font-family: 'Inter', sans-serif;
+}
+
+.about-rule-card--danger .about-rule-number {
+  color: #FECACA !important;
+}
+
+.about-rule-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.about-rule-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary-navy) !important;
+  line-height: 1.3;
+}
+
+.about-rule-body p {
+  font-size: 13.5px !important;
+  line-height: 1.7;
+  color: #475467 !important;
+  font-weight: 400 !important;
+  margin: 0 !important;
+}
+
+/* ---- Terms List ---- */
+.about-terms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.about-term-item {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  padding: 18px 20px;
+  background: #F8FAFC;
+  border: 1px solid #E9ECF0;
+  border-radius: 12px;
+  transition: box-shadow 0.2s ease;
+}
+
+.about-term-item:hover {
+  box-shadow: 0 4px 12px rgba(11, 23, 54, 0.08);
+}
+
+.about-term-icon {
+  font-size: 24px !important;
+  color: var(--primary-navy) !important;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.about-term-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary-navy) !important;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.about-term-item p {
+  font-size: 13.5px !important;
+  line-height: 1.7;
+  color: #475467 !important;
+  font-weight: 400 !important;
+  margin: 0 !important;
+}

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { User } from "../types";
 import { translations, LanguageCode } from "../utils/translations";
+import "./DropdownMenu.css";
+import "./PolicyModal.css";
 
 interface MenuProps {
   currentUser: User | null;
@@ -17,6 +19,7 @@ const Menu: React.FC<MenuProps> = ({ currentUser, handleLogout }) => {
   });
 
   const [activeModalType, setActiveModalType] = useState<ModalType | null>(null);
+  const [isModalRendered, setIsModalRendered] = useState(false);
 
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -43,6 +46,11 @@ const Menu: React.FC<MenuProps> = ({ currentUser, handleLogout }) => {
       const centeredX = Math.max(20, (window.innerWidth - modalWidth) / 2);
       const centeredY = Math.max(20, (window.innerHeight - modalHeight) / 2);
       setPosition({ x: centeredX, y: centeredY });
+      
+      const timer = setTimeout(() => setIsModalRendered(true), 10);
+      return () => clearTimeout(timer);
+    } else {
+      setIsModalRendered(false);
     }
   }, [activeModalType]);
 
@@ -85,7 +93,12 @@ const Menu: React.FC<MenuProps> = ({ currentUser, handleLogout }) => {
     window.dispatchEvent(new Event("languageChange"));
   };
 
-  const t = translations[lang];
+  const closeModal = () => {
+    setIsModalRendered(false);
+    setTimeout(() => setActiveModalType(null), 200);
+  };
+
+  const t = translations[lang] || {};
 
   const getSessionLabels = (l: LanguageCode) => {
     switch (l) {
@@ -100,11 +113,28 @@ const Menu: React.FC<MenuProps> = ({ currentUser, handleLogout }) => {
 
   const sessionLabels = getSessionLabels(lang);
 
+  // FIXED: Content elements now have reliable multi-line text string fallbacks to avoid blank windows
   const modalConfig: Record<ModalType, { title: string; content: string; icon: string }> = {
-    process: { title: t.electionProcessTitle || "Election Process", content: t.electionProcessContent, icon: "how_to_vote" },
-    rules: { title: t.votingRulesTitle || "Official Voting Rules", content: t.votingRulesContent, icon: "gavel" },
-    privacy: { title: t.privacyPolicyTitle || "Privacy & Data Policy", content: t.privacyPolicyContent, icon: "shield" },
-    terms: { title: t.termsOfServiceTitle || "Terms of Service", content: t.termsOfServiceContent, icon: "description" },
+    process: { 
+      title: t.electionProcessTitle || "Election Guidelines", 
+      content: t.electionProcessContent || "1. Log in with your verified credentials.\n2. Cast your ballot securely.\n3. Confirm submission.", 
+      icon: "how_to_vote" 
+    },
+    rules: { 
+      title: t.votingRulesTitle || "System Voting Rules", 
+      content: t.votingRulesContent || "1. One verified profile per unique voter.\n2. Complete within active voting hours.\n3. Security bypass attempts will lock session.", 
+      icon: "gavel" 
+    },
+    privacy: { 
+      title: t.privacyPolicyTitle || "Privacy & Data Protection", 
+      content: t.privacyPolicyContent || "1. Vote data is fully encrypted to maintain anonymity.\n2. Audit logs are collected strictly for system validation.", 
+      icon: "shield" 
+    },
+    terms: { 
+      title: t.termsOfServiceTitle || "Terms of Platform Service", 
+      content: t.termsOfServiceContent || "1. Intended for authorized organizational voting use.\n2. Automated scripts or disruptive actions are prohibited.", 
+      icon: "description" 
+    },
   };
 
   const handleAboutClick = (type: ModalType) => {
@@ -112,16 +142,12 @@ const Menu: React.FC<MenuProps> = ({ currentUser, handleLogout }) => {
     setActiveModalType(type);
   };
 
-  /**
-   * Universally formats paragraphs across ALL languages into styled left-border cards.
-   */
   const renderUnifiedBlockContent = (type: ModalType, text: string) => {
     if (!text) return null;
 
     const lines = text.split("\n")
       .map(line => {
         let clean = line.trim();
-        // Regex strips prefix numbers (1., 2.), list hyphens (-), bullets (•) or asterisks (*) smoothly
         clean = clean.replace(/^(\d+[\.\)]|[-*•])\s*/, "");
         return clean;
       })
@@ -171,7 +197,14 @@ const Menu: React.FC<MenuProps> = ({ currentUser, handleLogout }) => {
                 boxShadow: "0 1px 3px rgba(0,0,0,0.02)"
               }}
             >
-              <p style={{ margin: "0", fontSize: "14px", lineHeight: "1.5", color: theme.text, textAlign: "left" }}>
+              <p style={{ 
+                margin: "0", 
+                fontSize: "14px", 
+                lineHeight: "1.5", 
+                color: theme.text, 
+                textAlign: "left", 
+                fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
+              }}>
                 {line}
               </p>
             </div>
@@ -184,7 +217,33 @@ const Menu: React.FC<MenuProps> = ({ currentUser, handleLogout }) => {
   const activeModalDetails = activeModalType ? modalConfig[activeModalType] : null;
 
   return (
-    <div className="dropdown-container" ref={containerRef} style={{ position: "relative", display: "inline-block" }}>
+    <div className="dropdown-container" ref={containerRef} style={{ position: "relative", display: "inline-block", fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>
+      <style>{`
+        .dropdown-container, .dropdown-menu, .dropdown-item, .lang-btn, .dropdown-section-label, .dropdown-user-name, .close-btn, h3, p, button, a {
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+        }
+        .dropdown-trigger .chevron {
+          transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+        .dropdown-trigger.active .chevron {
+          transform: rotate(180deg) !important;
+        }
+        .dropdown-item, .lang-btn, .close-btn {
+          transition: all 0.15s ease-in-out !important;
+        }
+        .dropdown-section-label {
+          font-weight: 700 !important;
+          letter-spacing: 0.05em !important;
+          text-transform: uppercase !important;
+        }
+        .dropdown-user-name {
+          font-weight: 600 !important;
+        }
+        .dropdown-item span {
+          font-weight: 500 !important;
+        }
+      `}</style>
+
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`dropdown-trigger ${isOpen ? "active" : ""}`}
@@ -195,88 +254,93 @@ const Menu: React.FC<MenuProps> = ({ currentUser, handleLogout }) => {
         <span className="material-symbols-outlined chevron">expand_more</span>
       </button>
 
-      {isOpen && (
-        <div className="dropdown-menu">
-          {/* Language Selector */}
-          <div className="lang-selector-pill">
-            {["en", "tl", "ceb"].map((l) => (
-              <button
-                key={l}
-                onClick={() => changeLanguage(l as LanguageCode)}
-                className={`lang-btn ${lang === l ? "active" : ""}`}
-              >
-                {l === "en" ? "English" : l === "tl" ? "Tagalog" : "Bisaya"}
-              </button>
-            ))}
-          </div>
-
-          {/* Contact Section */}
-          <div className="dropdown-section">
-            <div className="dropdown-section-label">{t.contactSectionTitle}</div>
-            <div className="dropdown-list">
-              <a href="https://mail.google.com/mail/?view=cm&fs=1&tf=1&to=emjaygusela@gmail.com" target="_blank" rel="noopener noreferrer" className="dropdown-item">
-                <span className="material-symbols-outlined dropdown-item-icon">mail</span>
-                <span>admin@gmail.com</span>
-              </a>
-              <a href="tel:09168562198" className="dropdown-item">
-                <span className="material-symbols-outlined dropdown-item-icon">call</span>
-                <span>09168562198</span>
-              </a>
-              <a href="https://www.google.com/maps/place/Domingo+Ledesma+Mapa+High+School" target="_blank" rel="noopener noreferrer" className="dropdown-item">
-                <span className="material-symbols-outlined dropdown-item-icon">location_on</span>
-                <span>{t.addressValue}</span>
-              </a>
-            </div>
-          </div>
-
-          {/* About Section */}
-          <div className="dropdown-section">
-            <div className="dropdown-section-label">{t.aboutSectionTitle || "About"}</div>
-            <div className="dropdown-list">
-              <button onClick={() => handleAboutClick("process")} className="dropdown-item">
-                <span className="material-symbols-outlined dropdown-item-icon">how_to_vote</span>
-                <span>{t.electionProcess || "Election Process"}</span>
-              </button>
-              <button onClick={() => handleAboutClick("rules")} className="dropdown-item">
-                <span className="material-symbols-outlined dropdown-item-icon">gavel</span>
-                <span>{t.votingRules || "Official Voting Rules"}</span>
-              </button>
-              <button onClick={() => handleAboutClick("privacy")} className="dropdown-item">
-                <span className="material-symbols-outlined dropdown-item-icon">shield</span>
-                <span>{t.privacyPolicy || "Privacy & Data Policy"}</span>
-              </button>
-              <button onClick={() => handleAboutClick("terms")} className="dropdown-item">
-                <span className="material-symbols-outlined dropdown-item-icon">description</span>
-                <span>{t.termsOfService || "Terms of Service"}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Session Data Handling */}
-          {currentUser && (
-            <div className="dropdown-section">
-              <div className="dropdown-user-row">
-                <span className="material-symbols-outlined dropdown-user-avatar">account_circle</span>
-                <span className="dropdown-user-name">
-                  {sessionLabels.loggedInAs}: {currentUser.name}
-                </span>
-              </div>
-              <div className="dropdown-list">
-                <button
-                  onClick={() => {
-                    setIsOpen(false);
-                    handleLogout();
-                  }}
-                  className="dropdown-item logout-btn"
-                >
-                  <span className="material-symbols-outlined dropdown-item-icon">logout</span>
-                  <span>{sessionLabels.logout}</span>
-                </button>
-              </div>
-            </div>
-          )}
+      <div 
+        className="dropdown-menu"
+        style={{
+          display: "block",
+          opacity: isOpen ? 1 : 0,
+          visibility: isOpen ? "visible" : "hidden",
+          transform: isOpen ? "translateY(0) scale(1)" : "translateY(-10px) scale(0.96)",
+          transformOrigin: "top right",
+          transition: "opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.2s"
+        }}
+      >
+        {/* Language Selector */}
+        <div className="lang-selector-pill">
+          {["en", "tl", "ceb"].map((l) => (
+            <button
+              key={l}
+              onClick={() => changeLanguage(l as LanguageCode)}
+              className={`lang-btn ${lang === l ? "active" : ""}`}
+              style={{ fontWeight: lang === l ? 700 : 500 }}
+            >
+              {l === "en" ? "English" : l === "tl" ? "Tagalog" : "Bisaya"}
+            </button>
+          ))}
         </div>
-      )}
+
+        {/* Contact Section */}
+        <div className="dropdown-section">
+          <div className="dropdown-section-label">{t.contactSectionTitle || "Contact"}</div>
+          <div className="dropdown-list">
+            <a href="https://mail.google.com/mail/?view=cm&fs=1&tf=1&to=emjaygusela@gmail.com" target="_blank" rel="noopener noreferrer" className="dropdown-item">
+              <span className="material-symbols-outlined dropdown-item-icon">mail</span>
+              <span>admin@gmail.com</span>
+            </a>
+            <a href="tel:09168562198" className="dropdown-item">
+              <span className="material-symbols-outlined dropdown-item-icon">call</span>
+              <span>09168562198</span>
+            </a>
+          </div>
+        </div>
+
+        {/* About Section */}
+        <div className="dropdown-section">
+          <div className="dropdown-section-label">{t.aboutSectionTitle || "About Platform"}</div>
+          <div className="dropdown-list">
+            <button onClick={() => handleAboutClick("process")} className="dropdown-item">
+              <span className="material-symbols-outlined dropdown-item-icon">how_to_vote</span>
+              <span>{t.electionProcess || "Election Process"}</span>
+            </button>
+            <button onClick={() => handleAboutClick("rules")} className="dropdown-item">
+              <span className="material-symbols-outlined dropdown-item-icon">gavel</span>
+              <span>{t.votingRules || "Voting Rules"}</span>
+            </button>
+            <button onClick={() => handleAboutClick("privacy")} className="dropdown-item">
+              <span className="material-symbols-outlined dropdown-item-icon">shield</span>
+              <span>{t.privacyPolicy || "Privacy Policy"}</span>
+            </button>
+            <button onClick={() => handleAboutClick("terms")} className="dropdown-item">
+              <span className="material-symbols-outlined dropdown-item-icon">description</span>
+              <span>{t.termsOfService || "Terms of Service"}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Session Data Handling */}
+        {currentUser && (
+          <div className="dropdown-section">
+            <div className="dropdown-user-row">
+              <span className="material-symbols-outlined dropdown-user-avatar">account_circle</span>
+              <span className="dropdown-user-name">
+                {sessionLabels.loggedInAs}: {currentUser.name}
+              </span>
+            </div>
+            <div className="dropdown-list">
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  handleLogout();
+                }}
+                className="dropdown-item logout-btn"
+              >
+                <span className="material-symbols-outlined dropdown-item-icon">logout</span>
+                <span style={{ fontWeight: 600 }}>{sessionLabels.logout}</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Floating Freely Draggable Framed Screen Portal */}
       {activeModalType && activeModalDetails && (
@@ -294,7 +358,10 @@ const Menu: React.FC<MenuProps> = ({ currentUser, handleLogout }) => {
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
-            userSelect: isDragging ? "none" : "auto"
+            userSelect: isDragging ? "none" : "auto",
+            opacity: isModalRendered ? 1 : 0,
+            transform: isModalRendered ? "scale(1)" : "scale(0.95)",
+            transition: isDragging ? "none" : "opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
           }}
         >
           {/* Draggable Header Handle */}
@@ -318,7 +385,7 @@ const Menu: React.FC<MenuProps> = ({ currentUser, handleLogout }) => {
             </h3>
             <button
               className="close-btn"
-              onClick={() => setActiveModalType(null)}
+              onClick={closeModal}
               style={{
                 background: "none",
                 border: "none",
@@ -328,7 +395,8 @@ const Menu: React.FC<MenuProps> = ({ currentUser, handleLogout }) => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: "4px"
+                padding: "4px",
+                fontWeight: 400
               }}
             >
               ×
@@ -343,7 +411,7 @@ const Menu: React.FC<MenuProps> = ({ currentUser, handleLogout }) => {
           {/* Footer Close Actions Bar */}
           <div style={{ padding: "14px 20px", borderTop: "1px solid #F1F5F9", background: "#F8FAFC" }}>
             <button
-              onClick={() => setActiveModalType(null)}
+              onClick={closeModal}
               style={{
                 width: "100%",
                 padding: "10px",

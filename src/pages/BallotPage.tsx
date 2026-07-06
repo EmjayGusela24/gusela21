@@ -14,6 +14,7 @@ const BallotPage: React.FC<{
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [isTimerExpired, setIsTimerExpired] = useState(false);
+  const [collapsedPositions, setCollapsedPositions] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const checkVotingStatus = async () => {
@@ -76,6 +77,47 @@ const BallotPage: React.FC<{
     setLoading(true);
     setError("");
 
+    // --- Capture voted_at timestamp immediately ---
+    const votedAt = new Date().toISOString();
+
+    // --- Location capture: High-Accuracy GPS first, IP-based fallback if denied/HTTP ---
+    let locationText = "Location unavailable";
+    try {
+      // Primary: Request high accuracy GPS coords
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(new Error("Geolocation not supported by browser"));
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          timeout: 5000,           // 5 second timeout for GPS lock
+          enableHighAccuracy: true, // Forces GPS/Wi-Fi positioning instead of IP
+          maximumAge: 0,           // Force fresh coords
+        });
+      });
+      const { latitude, longitude, accuracy } = position.coords;
+      locationText = `${latitude.toFixed(6)}, ${longitude.toFixed(6)} (±${Math.round(accuracy)}m)`;
+    } catch (gpsError) {
+      // Fallback: If GPS fails (denied, HTTP, timeout), use IP-based Geolocation
+      try {
+        const ipRes = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(4000) });
+        if (ipRes.ok) {
+          const ipData = await ipRes.json();
+          const city    = ipData.city    || "";
+          const region  = ipData.region  || "";
+          const country = ipData.country_name || ipData.country || "";
+          const ip      = ipData.ip      || "";
+          if (city || region || country) {
+            locationText = [city, region, country].filter(Boolean).join(", ");
+            if (ip) locationText += ` (IP: ${ip})`;
+          }
+        }
+      } catch (ipError) {
+        locationText = "Location unavailable";
+      }
+    }
+
+
     try {
       // Direct database cutoff validation check
       const { data: settings, error: settingsError } = await supabase
@@ -104,27 +146,68 @@ const BallotPage: React.FC<{
         return;
       }
 
-      const voteInserts = POSITIONS.map((position) => ({
+      // ── Insert votes: try with time/location, fall back to base columns ──
+      const voteInsertsWithMeta = POSITIONS.map((position) => ({
         student_id: currentUser.id,
         candidate_id: selectedCandidates[position]!,
         position,
+        voted_at: votedAt,
+        location: locationText,
       }));
 
-      const { error: voteError } = await supabase.from("votes").insert(voteInserts);
-      if (voteError) throw voteError;
+      const { error: voteError } = await supabase.from("votes").insert(voteInsertsWithMeta);
 
-      await supabase.from("students").update({ has_voted: true }).eq("id", currentUser.id);
+      if (voteError) {
+        // Columns may not exist yet — retry without new fields
+        const voteInsertsBase = POSITIONS.map((position) => ({
+          student_id: currentUser.id,
+          candidate_id: selectedCandidates[position]!,
+          position,
+        }));
+        const { error: voteErrorBase } = await supabase.from("votes").insert(voteInsertsBase);
+        if (voteErrorBase) throw voteErrorBase;
+      }
 
+      // ── Mark student as voted: try with metadata, fall back to base ──
+      const { error: studentUpdateError } = await supabase
+        .from("students")
+        .update({ has_voted: true, voted_at: votedAt, vote_location: locationText })
+        .eq("id", currentUser.id);
+
+      if (studentUpdateError) {
+        // Columns may not exist yet — retry without new fields
+        await supabase
+          .from("students")
+          .update({ has_voted: true })
+          .eq("id", currentUser.id);
+      }
+
+      // ── Insert receipt: try with metadata, fall back to base ──
       const receiptId = Math.random().toString(36).substr(2, 12).toUpperCase();
-      await supabase.from("receipts").insert([
+      const { error: receiptError } = await supabase.from("receipts").insert([
         {
           student_id: currentUser.id,
           receipt_id: receiptId,
-          timestamp: new Date().toISOString(),
+          timestamp: votedAt,
           student_name: currentUser.name,
           grade: currentUser.grade,
+          voted_at: votedAt,
+          location: locationText,
         },
       ]);
+
+      if (receiptError) {
+        // Columns may not exist yet — retry without new fields
+        await supabase.from("receipts").insert([
+          {
+            student_id: currentUser.id,
+            receipt_id: receiptId,
+            timestamp: votedAt,
+            student_name: currentUser.name,
+            grade: currentUser.grade,
+          },
+        ]);
+      }
 
       localStorage.setItem(
         "currentUser",
@@ -139,6 +222,7 @@ const BallotPage: React.FC<{
       setLoading(false);
     }
   };
+
 
   const grouped = POSITIONS.reduce<Record<string, Candidate[]>>((acc, pos) => {
     acc[pos] = candidates.filter((c) => c.position === pos);
@@ -299,76 +383,128 @@ const BallotPage: React.FC<{
       {POSITIONS.map((position) => {
         const posCandidates = grouped[position] || [];
         const selectedId = selectedCandidates[position];
+        const isCollapsed = collapsedPositions[position];
+        const selectedCandidate = posCandidates.find(c => c.id === selectedId);
 
         return (
-          <div key={position} style={{ marginBottom: "40px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
-              <div style={{ padding: "8px 16px", background: "var(--primary-navy)", color: "white", borderRadius: "8px", fontSize: "14px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", boxShadow: "0 4px 12px rgba(11,23,54,0.15)" }}>
-                {position}
-              </div>
-              <div style={{ height: "2px", flex: 1, background: "linear-gradient(90deg, var(--border-light), transparent)" }}></div>
-            </div>
-            
-            <div className="candidate-grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "20px" }}>
-              {posCandidates.map((c) => {
-                const avatar = base64ToImageUrl(c.image_url) || `https://ui-avatars.com/api/?name=${c.name}&background=E8F0FE&color=0B1736`;
-                return (
-                  <div
-                    key={c.id}
-                    onClick={() => {
-                      if (isTimerExpired) return;
-                      setSelectedCandidates((prev) => ({ ...prev, [position]: c.id }));
-                    }}
-                    className={`candidate-card ${selectedId === c.id ? "selected" : ""} touch-animate`}
-                    style={{ height: "100%", opacity: isTimerExpired ? 0.6 : 1, cursor: isTimerExpired ? "not-allowed" : "pointer", boxShadow: "0 10px 30px rgba(0,0,0,0.04)" }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "center" }}>
-                      <img
-                        src={avatar}
-                        alt={c.name}
-                        style={{ width: "90px", height: "90px", borderRadius: "50%", objectFit: "cover", border: "3px solid white", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
-                        onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=E8F0FE&color=0B1736`; }}
-                      />
-                    </div>
-                    <div style={{ textAlign: "center", marginTop: "12px", marginBottom: "8px" }}>
-                      <h3 style={{ fontSize: "18px", margin: 0 }}>{c.name}</h3>
-                    </div>
-                    {c.campaign_text && (
-                      <div style={{ borderTop: "1px solid var(--border-light)", paddingTop: "12px", marginTop: "auto" }}>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setExpandedCampaign(expandedCampaign === c.id ? null : c.id);
-                          }}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            color: "var(--primary-blue)",
-                            fontSize: "12px",
-                            fontWeight: 600,
-                            cursor: "pointer",
-                            padding: 0,
-                            display: "flex",
-                            alignItems: "center",
-                            margin: "0 auto",
-                          }}
-                        >
-                          {expandedCampaign === c.id ? "Hide Campaign" : "View Campaign Platform"}
-                          <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>
-                            {expandedCampaign === c.id ? "expand_less" : "expand_more"}
-                          </span>
-                        </button>
-                        {expandedCampaign === c.id && (
-                          <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "12px", lineHeight: 1.6, textAlign: "center", wordBreak: "break-word", overflowWrap: "anywhere", whiteSpace: "pre-wrap" }}>
-                            {c.campaign_text}
-                          </p>
-                        )}
-                      </div>
-                    )}
+          <div key={position} style={{ marginBottom: "28px" }}>
+            <div
+              onClick={() => setCollapsedPositions(prev => ({ ...prev, [position]: !prev[position] }))}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "16px 24px",
+                background: "white",
+                borderRadius: "16px",
+                border: "1px solid var(--border-light)",
+                cursor: "pointer",
+                userSelect: "none",
+                marginBottom: isCollapsed ? "0" : "20px",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.02)",
+                transition: "all 0.2s ease"
+              }}
+              className="hover-lift"
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
+                <div style={{ padding: "8px 16px", background: "var(--primary-navy)", color: "white", borderRadius: "8px", fontSize: "14px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  {position}
+                </div>
+                {selectedCandidate ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#059669", fontSize: "14px", fontWeight: 600 }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: "18px", color: "#10B981" }}>check_circle</span>
+                    Selected: {selectedCandidate.name}
                   </div>
-                );
-              })}
+                ) : (
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#EF4444", fontSize: "14px", fontWeight: 600 }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>radio_button_unchecked</span>
+                    Selection Required
+                  </div>
+                )}
+              </div>
+              <span className="material-symbols-outlined" style={{
+                transform: isCollapsed ? "rotate(-90deg)" : "rotate(0deg)",
+                transition: "transform 0.2s ease",
+                color: "var(--text-muted)"
+              }}>
+                expand_more
+              </span>
             </div>
+
+            {!isCollapsed && (
+              <div className="candidate-grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "20px" }}>
+                {posCandidates.map((c) => {
+                  const avatar = base64ToImageUrl(c.image_url) || `https://ui-avatars.com/api/?name=${c.name}&background=E8F0FE&color=0B1736`;
+                  return (
+                    <div
+                      key={c.id}
+                      onClick={() => {
+                        if (isTimerExpired) return;
+                        setSelectedCandidates((prev) => ({ ...prev, [position]: c.id }));
+                      }}
+                      className={`candidate-card ${selectedId === c.id ? "selected" : ""} touch-animate`}
+                      style={{ height: "100%", opacity: isTimerExpired ? 0.6 : 1, cursor: isTimerExpired ? "not-allowed" : "pointer", boxShadow: "0 10px 30px rgba(0,0,0,0.04)" }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "center" }}>
+                        <img
+                          src={avatar}
+                          alt={c.name}
+                          style={{ width: "90px", height: "90px", borderRadius: "50%", objectFit: "cover", border: "3px solid white", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
+                          onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=E8F0FE&color=0B1736`; }}
+                        />
+                      </div>
+                      <div style={{ textAlign: "center", marginTop: "12px", marginBottom: "8px" }}>
+                        <h3 style={{ fontSize: "18px", margin: "0 0 6px 0", color: "var(--primary-navy)" }}>{c.name}</h3>
+                        <div style={{ display: "flex", gap: "6px", justifyContent: "center", flexWrap: "wrap" }}>
+                          {c.age && (
+                            <span style={{ fontSize: "11px", background: "#EFF6FF", color: "#1E40AF", padding: "2px 8px", borderRadius: "4px", fontWeight: 700 }}>
+                              Age: {c.age}
+                            </span>
+                          )}
+                          {c.section && (
+                            <span style={{ fontSize: "11px", background: "#ECFDF5", color: "#065F46", padding: "2px 8px", borderRadius: "4px", fontWeight: 700 }}>
+                              Section: {c.section}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {c.campaign_text && (
+                        <div style={{ borderTop: "1px solid var(--border-light)", paddingTop: "12px", marginTop: "auto" }}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setExpandedCampaign(expandedCampaign === c.id ? null : c.id);
+                            }}
+                            style={{
+                              background: "none",
+                              border: "none",
+                              color: "var(--primary-blue)",
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              padding: 0,
+                              display: "flex",
+                              alignItems: "center",
+                              margin: "0 auto",
+                            }}
+                          >
+                            {expandedCampaign === c.id ? "Hide Campaign" : "View Campaign Platform"}
+                            <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>
+                              {expandedCampaign === c.id ? "expand_less" : "expand_more"}
+                            </span>
+                          </button>
+                          {expandedCampaign === c.id && (
+                            <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "12px", lineHeight: 1.6, textAlign: "center", wordBreak: "break-word", overflowWrap: "anywhere", whiteSpace: "pre-wrap" }}>
+                              {c.campaign_text}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
       })}

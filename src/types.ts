@@ -3,7 +3,11 @@ export type Student = {
   name: string;
   password?: string;
   grade: string;
+  section?: string;
+  age?: number;
   has_voted: boolean;
+  voted_at?: string;
+  vote_location?: string;
   photo_url?: string;
   mobile_number?: string;
   otp_code?: string;
@@ -17,6 +21,8 @@ export type Candidate = {
   votes?: number;
   image_url?: string;
   campaign_text?: string;
+  age?: number;
+  section?: string;
 };
 
 export type Admin = { name: string; id: string; isAdmin: boolean };

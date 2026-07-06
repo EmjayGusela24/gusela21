@@ -1,8 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
+
 import { supabase } from "../supabase";
-import { User, Student, Admin, Page } from "../types";
-import { ADMIN_IDENTIFIER, ADMIN_PASSWORD } from "../types";
+import { User, Student, Admin, Page, ADMIN_IDENTIFIER, ADMIN_PASSWORD } from "../types";
+
 import { CountdownTimer } from "../components/CountdownTimer";
+
+import "./AuthForm.css";
+
+
 
 const AuthForm: React.FC<{
   setPage: (p: Page) => void;
@@ -15,8 +20,20 @@ const AuthForm: React.FC<{
   const [loading, setLoading] = useState(false);
   const [clipboardAlert, setClipboardAlert] = useState(false);
 
+  // Candidates drawer removed
+
+
   // Countdown timer states
   const [isTimerExpired, setIsTimerExpired] = useState(false);
+
+  // Use callback to stabilize listeners sent down to children
+  const handleTimerLoaded = useCallback((endTime: string | null) => {
+    if (endTime) {
+      setIsTimerExpired(new Date() >= new Date(endTime));
+    } else {
+      setIsTimerExpired(false);
+    }
+  }, []);
 
   const blockClipboard = (e: React.ClipboardEvent) => {
     e.preventDefault();
@@ -105,128 +122,131 @@ const AuthForm: React.FC<{
     gap: "8px",
   });
 
+
+
   return (
-    <div className="screen-content flex-center auth-screen-container" style={{ flexDirection: "column", gap: "16px" }}>
-      {/* Real-time Countdown Banner */}
-      <CountdownTimer
-        onExpire={() => setIsTimerExpired(true)}
-        onTimerLoaded={(endTime) => {
-          if (endTime) {
-            setIsTimerExpired(new Date() >= new Date(endTime));
-          } else {
-            setIsTimerExpired(false);
-          }
-        }}
-      />
+    <div className="split-login-container">
+      {/* LEFT PANEL: Login Form & Controls */}
+      <div className="login-form-side">
+        {/* Real-time Countdown Banner */}
+        <CountdownTimer
+          onExpire={() => setIsTimerExpired(true)}
+          onTimerLoaded={handleTimerLoaded}
+        />
 
-      <div className="auth-wrapper card-box" style={{ marginTop: 0 }}>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "12px",
-            marginBottom: "24px",
-          }}
-        >
-          <img
-            src="/logo.png"
-            alt="School Logo"
-            style={{
-              width: "160px",
-              height: "160px",
-              borderRadius: "50%",
-              border: "3px solid var(--border-light)",
-              objectFit: "cover",
-            }}
-          />
-          <h2 style={{ margin: 0, textAlign: "center" }}>Student Voting System</h2>
-        </div>
-
-        {/* Login Tabs */}
-        <div
-          style={{
-            display: "flex",
-            borderBottom: "1px solid var(--border-light, #E2E8F0)",
-            marginBottom: "24px",
-          }}
-        >
-          <button style={tabStyle(activeTab === "student")} onClick={() => switchTab("student")}>
-            <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>school</span>
-            Student
-          </button>
-          <button style={tabStyle(activeTab === "faculty")} onClick={() => switchTab("faculty")}>
-            <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>badge</span>
-            Faculty
-          </button>
-        </div>
-
-        {error && (
+        <div className="auth-wrapper card-box" style={{ marginTop: "24px", zIndex: 10, width: "100%", maxWidth: "420px" }}>
           <div
             style={{
-              color: "#D92D20",
-              background: "#FEF3F2",
-              padding: "12px",
-              borderRadius: "8px",
-              fontSize: "12px",
-              marginBottom: "16px",
-              fontWeight: 600,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "12px",
+              marginBottom: "24px",
             }}
           >
-            {error}
+            <img
+              src="/logo.png"
+              alt="School Logo"
+              style={{
+                width: "140px",
+                height: "140px",
+                borderRadius: "50%",
+                border: "3px solid var(--border-light)",
+                objectFit: "cover",
+              }}
+            />
+            <h2 style={{ margin: 0, textAlign: "center" }}>Student Voting System</h2>
           </div>
-        )}
 
-        {activeTab === "student" ? (
-          <>
-            {isTimerExpired && (
-              <div style={{ color: "#EF4444", background: "#FEF2F2", border: "1px solid #FEE2E2", borderRadius: "8px", padding: "12px", fontSize: "13px", fontWeight: 600, textAlign: "center", marginBottom: "16px" }}>
-                Student voting has ended. Login is closed.
+          {/* Login Tabs */}
+          <div
+            style={{
+              display: "flex",
+              borderBottom: "1px solid var(--border-light, #E2E8F0)",
+              marginBottom: "24px",
+            }}
+          >
+            <button style={tabStyle(activeTab === "student")} onClick={() => switchTab("student")}>
+              <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>school</span>
+              Student
+            </button>
+            <button style={tabStyle(activeTab === "faculty")} onClick={() => switchTab("faculty")}>
+              <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>badge</span>
+              Faculty
+            </button>
+          </div>
+
+          {error && (
+            <div
+              style={{
+                color: "#D92D20",
+                background: "#FEF3F2",
+                padding: "12px",
+                borderRadius: "8px",
+                fontSize: "12px",
+                marginBottom: "16px",
+                fontWeight: 600,
+              }}
+            >
+              {error}
+            </div>
+          )}
+
+          {activeTab === "student" ? (
+            <>
+              {isTimerExpired && (
+                <div style={{ color: "#EF4444", background: "#FEF2F2", border: "1px solid #FEE2E2", borderRadius: "8px", padding: "12px", fontSize: "13px", fontWeight: 600, textAlign: "center", marginBottom: "16px" }}>
+                  Student voting has ended. Login is closed.
+                </div>
+              )}
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "24px" }}>
+                <input name="identifier" aria-label="LRN Identifier" placeholder="LRN" value={form.identifier} onChange={handleChange} disabled={isTimerExpired} autoComplete="off" />
+                <input
+                  name="password"
+                  type="password"
+                  aria-label="Student Password"
+                  placeholder="Password"
+                  value={form.password}
+                  onChange={handleChange}
+                  disabled={isTimerExpired}
+                  onCopy={blockClipboard}
+                  onCut={blockClipboard}
+                  onPaste={blockClipboard}
+                  autoComplete="off"
+                />
               </div>
-            )}
-            
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "24px" }}>
-              <input name="identifier" placeholder="LRN" value={form.identifier} onChange={handleChange} disabled={isTimerExpired} autoComplete="off" />
-              <input
-                name="password"
-                type="password"
-                placeholder="Password"
-                value={form.password}
-                onChange={handleChange}
-                disabled={isTimerExpired}
-                onCopy={blockClipboard}
-                onCut={blockClipboard}
-                onPaste={blockClipboard}
-                autoComplete="off"
-              />
-            </div>
-            <button className="btn-primary" onClick={handleStudentLogin} disabled={loading || isTimerExpired}>
-              {loading ? "Processing..." : "Login as Student"}
-            </button>
-          </>
-        ) : (
-          <>
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "24px" }}>
-              <input name="email" placeholder="Email" value={facultyForm.email} onChange={handleFacultyChange} autoComplete="off" />
-              <input
-                name="password"
-                type="password"
-                placeholder="Password"
-                value={facultyForm.password}
-                onChange={handleFacultyChange}
-                onCopy={blockClipboard}
-                onCut={blockClipboard}
-                onPaste={blockClipboard}
-                autoComplete="off"
-              />
-            </div>
-            <button className="btn-primary" onClick={handleFacultyLogin} disabled={loading}>
-              {loading ? "Processing..." : "Login as Faculty"}
-            </button>
-          </>
-        )}
-
+              <button className="btn-primary" onClick={handleStudentLogin} disabled={loading || isTimerExpired}>
+                {loading ? "Processing..." : "Login as Student"}
+              </button>
+            </>
+          ) : (
+            <>
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "24px" }}>
+                <input name="email" aria-label="Faculty Email" placeholder="Email" value={facultyForm.email} onChange={handleFacultyChange} autoComplete="off" />
+                <input
+                  name="password"
+                  type="password"
+                  aria-label="Faculty Password"
+                  placeholder="Password"
+                  value={facultyForm.password}
+                  onChange={handleFacultyChange}
+                  onCopy={blockClipboard}
+                  onCut={blockClipboard}
+                  onPaste={blockClipboard}
+                  autoComplete="off"
+                />
+              </div>
+              <button className="btn-primary" onClick={handleFacultyLogin} disabled={loading}>
+                {loading ? "Processing..." : "Login as Faculty"}
+              </button>
+            </>
+          )}
+        </div>
       </div>
+
+
+
       {/* Clipboard Security Toast */}
       {clipboardAlert && (
         <div style={{

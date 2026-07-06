@@ -122,86 +122,95 @@ const AdminRegister: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) =>
   return (
     <div className="screen-content content-max-width">
       <ReturnButton onClick={() => setPage("admin_setup")} />
-      <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+      <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
         <h1 style={{ marginBottom: "8px" }}>Register New Student</h1>
         <p style={{ color: "#64748b", marginBottom: "32px" }}>Add a new student to the voters list</p>
 
-        <div className="card-box" style={{ background: "var(--bg-main)" }}>
+        <div className="card-box" style={{ background: "var(--bg-main)", padding: "32px" }}>
           {error && (
-            <div style={{ color: "#D92D20", background: "#FEF3F2", padding: "12px", borderRadius: "8px", fontSize: "12px", marginBottom: "16px", fontWeight: 600 }}>
+            <div style={{ color: "#D92D20", background: "#FEF3F2", padding: "12px", borderRadius: "8px", fontSize: "12px", marginBottom: "24px", fontWeight: 600 }}>
               {error}
             </div>
           )}
 
-          {/* Profile Picture Upload Section */}
-          <div style={{ marginBottom: "24px", textAlign: "center" }}>
-            <div style={{ marginBottom: "12px" }}>
-              {previewUrl ? (
-                <img src={previewUrl} alt="Preview" style={{ width: "120px", height: "120px", borderRadius: "50%", objectFit: "cover", border: "4px solid var(--border-light)" }} onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(form.name || "Student")}&background=E8F0FE&color=0B1736`; }} />
-              ) : (
-                <div style={{ width: "120px", height: "120px", borderRadius: "50%", background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", border: "4px solid var(--border-light)" }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: "48px", color: "#94a3b8" }}>person</span>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "40px" }}>
+            {/* Left Column */}
+            <div>
+              {/* Profile Picture Upload Section */}
+              <div style={{ marginBottom: "32px", textAlign: "center" }}>
+                <div style={{ marginBottom: "16px" }}>
+                  {previewUrl ? (
+                    <img src={previewUrl} alt="Preview" style={{ width: "140px", height: "140px", borderRadius: "50%", objectFit: "cover", border: "4px solid var(--border-light)" }} onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(form.name || "Student")}&background=E8F0FE&color=0B1736`; }} />
+                  ) : (
+                    <div style={{ width: "140px", height: "140px", borderRadius: "50%", background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", border: "4px solid var(--border-light)" }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: "56px", color: "#94a3b8" }}>person</span>
+                    </div>
+                  )}
                 </div>
-              )}
+
+                <label style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: "8px" }}>
+                  Profile Picture
+                </label>
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg, image/jpg"
+                  onChange={handleFileChange}
+                  style={{ padding: "10px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "13px", width: "100%", maxWidth: "250px", margin: "0 auto" }}
+                />
+              </div>
+
+              {/* Full Name Input */}
+              <div style={{ marginBottom: "20px" }}>
+                <label style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px", display: "block" }}>Full Name *</label>
+                <input name="name" placeholder="Enter student full name" value={form.name} onChange={handleChange} style={{ width: "100%", padding: "14px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "14px" }} />
+              </div>
+
+              {/* LRN Input */}
+              <div style={{ marginBottom: "20px" }}>
+                <label style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px", display: "block" }}>LRN *</label>
+                <input name="lrn" placeholder="Enter LRN" value={form.lrn} onChange={handleChange} maxLength={12} autoComplete="off" style={{ width: "100%", padding: "14px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "14px", fontFamily: "monospace" }} />
+              </div>
             </div>
 
-            <label style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-muted)" }}>
-              Profile Picture
-            </label>
-            <input
-              type="file"
-              accept="image/png, image/jpeg, image/jpg"
-              onChange={handleFileChange}
-              style={{ marginTop: "8px", padding: "8px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "13px", width: "100%" }}
-            />
-          </div>
+            {/* Right Column */}
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {/* Dynamic Grid for Grade, Section, and Age Input Fields */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
+                <div>
+                  <label style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px", display: "block" }}>Grade Level *</label>
+                  <select name="grade" value={form.grade} onChange={handleChange} style={{ width: "100%", padding: "14px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "14px", height: "50px" }}>
+                    <option value="G7">Grade 7</option>
+                    <option value="G8">Grade 8</option>
+                    <option value="G9">Grade 9</option>
+                    <option value="G10">Grade 10</option>
+                    <option value="G11">Grade 11</option>
+                    <option value="G12">Grade 12</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px", display: "block" }}>Age *</label>
+                  <input name="age" type="number" min={5} max={100} placeholder="Age" value={form.age} onChange={handleChange} style={{ width: "100%", padding: "14px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "14px", height: "50px", boxSizing: "border-box" }} />
+                </div>
+              </div>
+              
+              <div style={{ marginBottom: "20px" }}>
+                <label style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px", display: "block" }}>Section *</label>
+                <input name="section" placeholder="e.g., Einstein" value={form.section} onChange={handleChange} style={{ width: "100%", padding: "14px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "14px", height: "50px", boxSizing: "border-box" }} />
+              </div>
 
-          {/* Full Name Input */}
-          <div style={{ marginBottom: "20px" }}>
-            <label style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px", display: "block" }}>Full Name *</label>
-            <input name="name" placeholder="Enter student full name" value={form.name} onChange={handleChange} style={{ width: "100%", padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "14px" }} />
-          </div>
+              {/* Password Input */}
+              <div style={{ marginBottom: "32px" }}>
+                <label style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px", display: "block" }}>Password *</label>
+                <input name="password" type="password" placeholder="Enter login password" value={form.password} onChange={handleChange} onCopy={blockClipboard} onCut={blockClipboard} onPaste={blockClipboard} autoComplete="off" style={{ width: "100%", padding: "14px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "14px" }} />
+              </div>
 
-          {/* LRN Input */}
-          <div style={{ marginBottom: "20px" }}>
-            <label style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px", display: "block" }}>LRN *</label>
-            <input name="lrn" placeholder="Enter LRN" value={form.lrn} onChange={handleChange} maxLength={12} autoComplete="off" style={{ width: "100%", padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "14px", fontFamily: "monospace" }} />
-          </div>
-
-          {/* Dynamic Grid for Grade, Section, and Age Input Fields */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "20px" }}>
-            <div>
-              <label style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px", display: "block" }}>Grade Level *</label>
-              <select name="grade" value={form.grade} onChange={handleChange} style={{ width: "100%", padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "14px", height: "46px" }}>
-                <option value="G7">Grade 7</option>
-                <option value="G8">Grade 8</option>
-                <option value="G9">Grade 9</option>
-                <option value="G10">Grade 10</option>
-                <option value="G11">Grade 11</option>
-                <option value="G12">Grade 12</option>
-              </select>
-            </div>
-
-            <div>
-              <label style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px", display: "block" }}>Section *</label>
-              <input name="section" placeholder="e.g., Einstein" value={form.section} onChange={handleChange} style={{ width: "100%", padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "14px", height: "46px", boxSizing: "border-box" }} />
-            </div>
-
-            <div>
-              <label style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px", display: "block" }}>Age *</label>
-              <input name="age" type="number" min={5} max={100} placeholder="Age" value={form.age} onChange={handleChange} style={{ width: "100%", padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "14px", height: "46px", boxSizing: "border-box" }} />
+              <div style={{ marginTop: "auto", paddingTop: "20px", borderTop: "1px solid var(--border-light)" }}>
+                <button className="btn-primary" onClick={handleSubmit} disabled={loading} style={{ width: "100%", padding: "16px", fontSize: "16px", fontWeight: 700 }}>
+                  {loading ? "Registering..." : "Register Student"}
+                </button>
+              </div>
             </div>
           </div>
-
-          {/* Password Input */}
-          <div style={{ marginBottom: "24px" }}>
-            <label style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px", display: "block" }}>Password *</label>
-            <input name="password" type="password" placeholder="Enter login password" value={form.password} onChange={handleChange} onCopy={blockClipboard} onCut={blockClipboard} onPaste={blockClipboard} autoComplete="off" style={{ width: "100%", padding: "12px", border: "1px solid var(--border-light)", borderRadius: "6px", background: "var(--bg-main)", fontSize: "14px" }} />
-          </div>
-
-          <button className="btn-primary" onClick={handleSubmit} disabled={loading} style={{ width: "100%" }}>
-            {loading ? "Registering..." : "Register Student"}
-          </button>
         </div>
       </div>
       {/* Clipboard Security Toast */}

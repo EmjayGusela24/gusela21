@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../supabase";
+import "./AdminVotersList.css";
 import type { Student, Page } from "../types";
 import ReturnButton from "../components/ReturnButton";
 import { base64ToImageUrl } from "../utils/imageUtils";

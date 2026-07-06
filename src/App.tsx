@@ -68,7 +68,7 @@ const AppShell: React.FC = () => {
   if (loading) return <div className="flex-center" style={{ height: "100vh" }}>Loading System...</div>;
 
   return (
-    <div className="app-container">
+    <div className="app-container" style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       {page !== "login" && <Header currentUser={currentUser} handleLogout={handleLogout} />}
 
       {page === "login" && <AuthForm setPage={setPage} setCurrentUser={setCurrentUser} />}
