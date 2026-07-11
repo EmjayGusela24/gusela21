@@ -33,3 +33,28 @@
     margin-bottom: 4px;
   }
 }
+
+/* ====================== LANDSCAPE LAYOUT ====================== */
+.admin-landscape-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .admin-landscape-layout {
+    grid-template-columns: 320px 1fr;
+  }
+}
+
+.admin-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-main-content {
+  min-width: 0;
+}
+

@@ -202,8 +202,7 @@ const Menu: React.FC<MenuProps> = ({ currentUser, handleLogout }) => {
                 fontSize: "14px", 
                 lineHeight: "1.5", 
                 color: theme.text, 
-                textAlign: "left", 
-                fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
+                textAlign: "left"
               }}>
                 {line}
               </p>
@@ -217,10 +216,10 @@ const Menu: React.FC<MenuProps> = ({ currentUser, handleLogout }) => {
   const activeModalDetails = activeModalType ? modalConfig[activeModalType] : null;
 
   return (
-    <div className="dropdown-container" ref={containerRef} style={{ position: "relative", display: "inline-block", fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>
+    <div className="dropdown-container" ref={containerRef} style={{ position: "relative", display: "inline-block" }}>
       <style>{`
         .dropdown-container, .dropdown-menu, .dropdown-item, .lang-btn, .dropdown-section-label, .dropdown-user-name, .close-btn, h3, p, button, a {
-          font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+          font-family: 'Inter', sans-serif !important;
         }
         .dropdown-trigger .chevron {
           transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;

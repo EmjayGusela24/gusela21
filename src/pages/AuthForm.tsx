@@ -69,24 +69,26 @@ const AuthForm: React.FC<{
       return;
     }
 
-    const { data: student, error: fetchError } = await supabase
-      .from("students")
-      .select("*")
-      .eq("id", identifier)
-      .eq("password", password)
-      .single();
+    // Use bcrypt-safe RPC — password comparison is done server-side
+    const { data, error: rpcError } = await supabase.rpc("login_student", {
+      login_id: identifier,
+      login_password: password,
+    });
 
-    if (fetchError || !student) {
-      setError("Invalid LRN credentials. Please try again.");
+    if (rpcError || !data || data.length === 0) {
+      setError("Invalid LRN or Password. Please try again.");
       setLoading(false);
       return;
     }
 
+    const student = data[0] as Student;
     localStorage.setItem("currentUser", JSON.stringify(student));
-    setCurrentUser(student as Student);
-    setPage((student as Student).has_voted ? "confirm" : "ballot");
+    setCurrentUser(student);
+    setPage(student.has_voted ? "confirm" : "ballot");
     setLoading(false);
   };
+
+
 
   const handleFacultyLogin = () => {
     setLoading(true);

@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import { Candidate, Page, POSITIONS } from "../types";
-import { fileToBase64, base64ToImageUrl } from "../utils/imageUtils";
+import { fileToByteaHex, base64ToImageUrl, generateInitialsAvatar } from "../utils/imageUtils";
+import { CandidatePhoto } from "../components/CandidatePhoto";
+import "./AdminSetup.css";
+
 
 const AdminSetup: React.FC<{
   setPage: (p: Page) => void;
@@ -82,8 +85,9 @@ const AdminSetup: React.FC<{
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       const file = e.target.files[0];
-      const base64 = await fileToBase64(file);
-      setForm({ ...form, image_url: base64 });
+      // fileToByteaHex produces \xHEX string which PostgREST correctly maps to bytea
+      const hexStr = await fileToByteaHex(file);
+      setForm({ ...form, image_url: hexStr });
     }
   };
 
@@ -104,23 +108,33 @@ const AdminSetup: React.FC<{
 
     setIsSubmitting(true);
     if (editingCandidate) {
-      await supabase.from("candidates").update({
+      const { error: updateError } = await supabase.from("candidates").update({
         name: form.name.trim(),
         position: form.position,
-        image_url: form.image_url,
+        ...(form.image_url ? { image: form.image_url } : {}),
         campaign_text: form.campaign_text.trim(),
         age: parsedAge,
         section: form.section.trim(),
       }).eq("id", editingCandidate.id);
+      if (updateError) {
+        alert("Failed to update candidate: " + updateError.message);
+        setIsSubmitting(false);
+        return;
+      }
     } else {
-      await supabase.from("candidates").insert([{
+      const { error: insertError } = await supabase.from("candidates").insert([{
         name: form.name.trim(),
         position: form.position,
-        image_url: form.image_url,
+        ...(form.image_url ? { image: form.image_url } : {}),
         campaign_text: form.campaign_text.trim(),
         age: parsedAge,
         section: form.section.trim(),
       }]);
+      if (insertError) {
+        alert("Failed to add candidate: " + insertError.message);
+        setIsSubmitting(false);
+        return;
+      }
     }
     await fetchCandidates();
     setEditingCandidate(null);
@@ -133,7 +147,7 @@ const AdminSetup: React.FC<{
     setForm({
       name: c.name,
       position: c.position as (typeof POSITIONS)[number],
-      image_url: c.image_url || "",
+      image_url: c.image || c.image_url || "",
       campaign_text: c.campaign_text || "",
       age: c.age !== undefined && c.age !== null ? String(c.age) : "",
       section: c.section || ""
@@ -157,7 +171,7 @@ const AdminSetup: React.FC<{
   const fetchCandidates = async () => {
     const { data, error } = await supabase
       .from("candidates")
-      .select("id, position, name, image_url, campaign_text, age, section")
+      .select("id, position, name, campaign_text, age, section")
       .order("position");
 
     if (error || !data) {
@@ -258,7 +272,7 @@ const AdminSetup: React.FC<{
                   src={base64ToImageUrl(form.image_url) || form.image_url}
                   alt="Preview"
                   style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-light)" }}
-                  onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(form.name || "Candidate")}&background=E8F0FE&color=0B1736`; }}
+                  onError={(e) => { e.currentTarget.src = generateInitialsAvatar(form.name || "Candidate"); }}
                 />
               )}
               <input
@@ -390,19 +404,14 @@ const AdminSetup: React.FC<{
               </div>
 
               {!isCollapsed && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <div className="setup-candidates-grid">
                   {posCandidates.map((c) => (
-                    <div key={c.id} style={{ padding: "20px 24px", background: "linear-gradient(145deg, #ffffff, #f8fafc)", borderRadius: "16px", border: "1px solid var(--border-light)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "20px", transition: "transform 0.2s ease, box-shadow 0.2s ease" }} className="hover-lift">
-                      <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-                        <img
-                          src={base64ToImageUrl(c.image_url) || `https://ui-avatars.com/api/?name=${c.name}&background=E8F0FE&color=0B1736`}
-                          alt={c.name}
-                          style={{ width: "56px", height: "56px", borderRadius: "50%", objectFit: "cover", border: "2px solid white", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
-                          onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=E8F0FE&color=0B1736`; }}
-                        />
-                        <div>
-                          <h4 style={{ margin: "0 0 4px 0", fontSize: "18px", color: "var(--primary-navy)", fontWeight: 700 }}>{c.name}</h4>
-                          <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                    <div key={c.id} style={{ padding: "20px", background: "linear-gradient(145deg, #ffffff, #f8fafc)", borderRadius: "16px", border: "1px solid var(--border-light)", display: "flex", flexDirection: "column", gap: "16px", transition: "transform 0.2s ease, box-shadow 0.2s ease" }} className="hover-lift">
+                      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                        <CandidatePhoto candidateId={c.id} name={c.name} size={56} borderRadius="50%" />
+                        <div style={{ minWidth: 0 }}>
+                          <h4 style={{ margin: "0 0 4px 0", fontSize: "16px", color: "var(--primary-navy)", fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</h4>
+                          <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
                             {c.age && (
                               <span style={{ fontSize: "11px", background: "#EFF6FF", color: "#1E40AF", padding: "2px 8px", borderRadius: "4px", fontWeight: 700 }}>
                                 Age: {c.age}
@@ -410,20 +419,20 @@ const AdminSetup: React.FC<{
                             )}
                             {c.section && (
                               <span style={{ fontSize: "11px", background: "#ECFDF5", color: "#065F46", padding: "2px 8px", borderRadius: "4px", fontWeight: 700 }}>
-                                Section: {c.section}
+                                Sec: {c.section}
                               </span>
                             )}
                           </div>
                         </div>
                       </div>
-                      <div className="action-buttons" style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-                        <button className="btn-light-blue" onClick={() => onViewCandidate(c.id)} style={{ padding: "9px 18px", fontSize: "13px" }}>
-                          View Profile
+                      <div className="action-buttons" style={{ display: "flex", gap: "8px", marginTop: "auto" }}>
+                        <button className="btn-light-blue" onClick={() => onViewCandidate(c.id)} style={{ padding: "8px 12px", fontSize: "12px", flex: 1, justifyContent: "center" }}>
+                          View
                         </button>
-                        <button className="btn-outline-wide" onClick={() => handleEdit(c)} style={{ padding: "9px 18px", fontSize: "13px" }}>
+                        <button className="btn-outline-wide" onClick={() => handleEdit(c)} style={{ padding: "8px 12px", fontSize: "12px", flex: 1, justifyContent: "center" }}>
                           Edit
                         </button>
-                        <button className="btn-outline-wide" onClick={() => handleDelete(c.id)} style={{ padding: "9px 18px", fontSize: "13px", color: "#D92D20", borderColor: "#FEE4E2" }}>
+                        <button className="btn-outline-wide" onClick={() => handleDelete(c.id)} style={{ padding: "8px 12px", fontSize: "12px", flex: 1, justifyContent: "center", color: "#D92D20", borderColor: "#FEE4E2" }}>
                           Delete
                         </button>
                       </div>

@@ -3,7 +3,8 @@ import { supabase } from "../supabase";
 import { POSITIONS } from "../types";
 import type { Candidate, Page } from "../types";
 import ReturnButton from "../components/ReturnButton";
-import { base64ToImageUrl } from "../utils/imageUtils";
+import { generateInitialsAvatar } from "../utils/imageUtils";
+import { CandidatePhoto } from "../components/CandidatePhoto";
 
 const DownloadResults: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) => {
   const [results, setResults] = useState<{ candidate: Candidate; count: number }[]>([]);
@@ -15,7 +16,7 @@ const DownloadResults: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) 
   useEffect(() => {
     const run = async () => {
       const [candRes, voteRes, stuRes] = await Promise.all([
-        supabase.from("candidates").select("*"),
+        supabase.from("candidates").select("id, position, name, campaign_text, age, section"),
         supabase.from("votes").select("candidate_id, student_id"),
         supabase.from("students").select("id", { count: "exact", head: true }), // head: true optimizes by not pulling all rows
       ]);
@@ -122,12 +123,7 @@ const DownloadResults: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) 
               style={{ padding: "18px 0", borderBottom: index < results.length - 1 ? "1px solid #ddd" : "none", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-                <img
-                  src={base64ToImageUrl(r.candidate.image_url) || `https://ui-avatars.com/api/?name=${r.candidate.name}&background=E8F0FE&color=0B1736`}
-                  alt={r.candidate.name}
-                  style={{ width: "55px", height: "55px", borderRadius: "50%", objectFit: "cover" }}
-                  onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(r.candidate.name)}&background=E8F0FE&color=0B1736`; }}
-                />
+                <CandidatePhoto candidateId={r.candidate.id} name={r.candidate.name} size={55} borderRadius="50%" />
                 <div>
                   <strong style={{ fontSize: "17px" }}>{r.candidate.name}</strong>
                   <div style={{ color: "#555" }}>{r.candidate.position}</div>

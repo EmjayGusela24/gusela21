@@ -1,6 +1,8 @@
 
 import { User } from "../types";
 import Menu from "./Menu";
+import "./Header.css";
+
 
 const Header = ({
   currentUser,

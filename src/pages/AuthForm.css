@@ -484,3 +484,20 @@
   color: #94A3B8 !important;
   font-size: 10.5px;
 }
+
+/* Authentication wrapper layout properties */
+.auth-wrapper {
+  width: 100%;
+  max-width: 400px;
+  margin: auto;
+  background: var(--bg-main);
+  padding: 30px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+}
+
+@media (min-width: 768px) {
+  .auth-wrapper {
+    margin: auto;
+  }
+}

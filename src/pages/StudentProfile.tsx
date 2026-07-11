@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import { Student, Page } from "../types";
 import ReturnButton from "../components/ReturnButton";
-import { base64ToImageUrl } from "../utils/imageUtils";
+import { base64ToImageUrl, generateInitialsAvatar } from "../utils/imageUtils";
 
 const StudentProfile: React.FC<{
   setPage: (p: Page) => void;
@@ -130,12 +130,11 @@ const StudentProfile: React.FC<{
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
             <img
               src={
-                base64ToImageUrl(student.photo_url) ||
-                `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=E8F0FE&color=0B1736`
+                base64ToImageUrl(student.photo || student.photo_url) || generateInitialsAvatar(student.name)
               }
               alt={student.name}
               style={{ width: "80px", height: "80px", borderRadius: "20px", objectFit: "cover", border: "2px solid var(--border-light)", boxShadow: "0 8px 16px rgba(0,0,0,0.08)" }}
-              onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=E8F0FE&color=0B1736`; }}
+              onError={(e) => { e.currentTarget.src = generateInitialsAvatar(student.name); }}
             />
             <div>
               <span style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-light)" }}>Student Profile</span>

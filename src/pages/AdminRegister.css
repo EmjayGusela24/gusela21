@@ -1,0 +1,46 @@
+/* AdminRegister Page Styles */
+
+.admin-landscape-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .admin-landscape-layout {
+    grid-template-columns: 320px 1fr;
+  }
+}
+
+.admin-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-main-content {
+  min-width: 0;
+}
+
+.preview-card {
+  padding: 24px;
+  background: white;
+  text-align: center;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+
+.preview-avatar-box {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  border: 3px solid white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}

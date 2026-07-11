@@ -1,5 +1,7 @@
 
 
+import "./PhotoViewerModal.css";
+
 const PhotoViewerModal = ({
   imageUrl,
   onClose,

@@ -8,6 +8,7 @@ export type Student = {
   has_voted: boolean;
   voted_at?: string;
   vote_location?: string;
+  photo?: string;       // DB column: "photo" (bytea hex)
   photo_url?: string;
   mobile_number?: string;
   otp_code?: string;
@@ -19,7 +20,8 @@ export type Candidate = {
   position: string;
   name: string;
   votes?: number;
-  image_url?: string;
+  image?: string;       // DB column: "image" (bytea hex)
+  image_url?: string;   // alias kept for backward compat
   campaign_text?: string;
   age?: number;
   section?: string;

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import type { Candidate, Page } from "../types";
 import ReturnButton from "../components/ReturnButton";
-import { base64ToImageUrl } from "../utils/imageUtils";
+import { generateInitialsAvatar } from "../utils/imageUtils";
+import { CandidatePhoto } from "../components/CandidatePhoto";
 
 const CandidateProfile: React.FC<{
   setPage: (p: Page) => void;
@@ -17,7 +18,7 @@ const CandidateProfile: React.FC<{
       setLoading(true);
       const { data, error } = await supabase
         .from("candidates")
-        .select("id, position, name, image_url, campaign_text, age, section")
+        .select("id, position, name, campaign_text, age, section")
         .eq("id", candidateId)
         .single();
 
@@ -44,10 +45,6 @@ const CandidateProfile: React.FC<{
   if (loading) return <div className="screen-content flex-center">Loading candidate profile...</div>;
   if (!candidate) return <div className="screen-content flex-center">Candidate not found.</div>;
 
-  const avatar =
-    base64ToImageUrl(candidate.image_url) ||
-    `https://ui-avatars.com/api/?name=${candidate.name}&background=E8F0FE&color=0B1736`;
-
   return (
     <div className="screen-content content-max-width">
       <ReturnButton onClick={() => setPage("admin_setup")} />
@@ -55,22 +52,12 @@ const CandidateProfile: React.FC<{
         <div style={{ textAlign: "center", padding: "48px 20px", background: "white", borderRadius: "24px", boxShadow: "0 10px 40px rgba(11,23,54,0.08)", position: "relative", overflow: "hidden", border: "1px solid var(--border-light)" }}>
           <div style={{ position: "absolute", top: "-20%", left: "-10%", width: "300px", height: "300px", background: "radial-gradient(circle, rgba(11,23,54,0.03) 0%, rgba(11,23,54,0) 70%)", borderRadius: "50%", pointerEvents: "none" }} />
           <div style={{ position: "absolute", bottom: "-20%", right: "-10%", width: "250px", height: "250px", background: "radial-gradient(circle, rgba(18,183,106,0.05) 0%, rgba(18,183,106,0) 70%)", borderRadius: "50%", pointerEvents: "none" }} />
-          
-          <img
-            src={avatar}
-            alt={candidate.name}
-            onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(candidate.name)}&background=E8F0FE&color=0B1736`; }}
-            style={{
-              width: "180px",
-              height: "180px",
-              borderRadius: "50%",
-              objectFit: "cover",
-              border: "4px solid white",
-              boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
-              marginBottom: "24px",
-              position: "relative",
-              zIndex: 1
-            }}
+
+          <CandidatePhoto
+            candidateId={candidate.id}
+            name={candidate.name}
+            size={180}
+            borderRadius="50%"
           />
           <h1 style={{ color: "var(--primary-navy)", fontSize: "32px", marginBottom: "12px", position: "relative", zIndex: 1, letterSpacing: "-0.02em" }}>{candidate.name}</h1>
           <span className="badge-cyan" style={{ fontSize: "15px", padding: "8px 16px", position: "relative", zIndex: 1, fontWeight: 700, letterSpacing: "0.02em", display: "inline-block" }}>

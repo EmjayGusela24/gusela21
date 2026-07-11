@@ -1,4 +1,6 @@
 import React from "react";
+import "./ConfirmationScreen.css";
+
 
 const ConfirmationScreen: React.FC<{ handleLogout: () => void }> = ({ handleLogout }) => (
   <div className="screen-content flex-center" style={{ minHeight: "calc(100vh - 180px)", padding: "20px" }}>

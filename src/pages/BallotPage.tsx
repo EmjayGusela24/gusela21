@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import { Student, Candidate, Page, POSITIONS } from "../types";
-import { base64ToImageUrl } from "../utils/imageUtils";
+import { generateInitialsAvatar } from "../utils/imageUtils";
+import { CandidatePhoto } from "../components/CandidatePhoto";
 import { CountdownTimer } from "../components/CountdownTimer";
+import "./BallotPage.css";
+import "./AdminSetup.css";
+
+
 
 const BallotPage: React.FC<{
   setPage: (p: Page) => void;
@@ -47,7 +52,7 @@ const BallotPage: React.FC<{
 
       const { data, error: fetchError } = await supabase
         .from("candidates")
-        .select("*");
+        .select("id, position, name, campaign_text, age, section");
 
       if (fetchError) {
         setError("Error fetching candidates: " + fetchError.message);
@@ -434,7 +439,6 @@ const BallotPage: React.FC<{
             {!isCollapsed && (
               <div className="candidate-grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "20px" }}>
                 {posCandidates.map((c) => {
-                  const avatar = base64ToImageUrl(c.image_url) || `https://ui-avatars.com/api/?name=${c.name}&background=E8F0FE&color=0B1736`;
                   return (
                     <div
                       key={c.id}
@@ -446,12 +450,7 @@ const BallotPage: React.FC<{
                       style={{ height: "100%", opacity: isTimerExpired ? 0.6 : 1, cursor: isTimerExpired ? "not-allowed" : "pointer", boxShadow: "0 10px 30px rgba(0,0,0,0.04)" }}
                     >
                       <div style={{ display: "flex", justifyContent: "center" }}>
-                        <img
-                          src={avatar}
-                          alt={c.name}
-                          style={{ width: "90px", height: "90px", borderRadius: "50%", objectFit: "cover", border: "3px solid white", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
-                          onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=E8F0FE&color=0B1736`; }}
-                        />
+                        <CandidatePhoto candidateId={c.id} name={c.name} size={90} borderRadius="50%" />
                       </div>
                       <div style={{ textAlign: "center", marginTop: "12px", marginBottom: "8px" }}>
                         <h3 style={{ fontSize: "18px", margin: "0 0 6px 0", color: "var(--primary-navy)" }}>{c.name}</h3>
