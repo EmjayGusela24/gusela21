@@ -3,7 +3,6 @@ import { supabase } from "../supabase";
 import { POSITIONS } from "../types";
 import type { Candidate, Page } from "../types";
 import ReturnButton from "../components/ReturnButton";
-import { generateInitialsAvatar } from "../utils/imageUtils";
 import { CandidatePhoto } from "../components/CandidatePhoto";
 
 const DownloadResults: React.FC<{ setPage: (p: Page) => void }> = ({ setPage }) => {

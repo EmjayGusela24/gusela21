@@ -3,7 +3,6 @@ import { supabase } from "../supabase";
 import "./AdminVotersList.css";
 import type { Student, Page } from "../types";
 import ReturnButton from "../components/ReturnButton";
-import { base64ToImageUrl, generateInitialsAvatar } from "../utils/imageUtils";
 import { StudentPhoto } from "../components/StudentPhoto";
 
 const AdminVotersList: React.FC<{

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import type { Candidate, Page } from "../types";
 import ReturnButton from "../components/ReturnButton";
-import { generateInitialsAvatar } from "../utils/imageUtils";
 import { CandidatePhoto } from "../components/CandidatePhoto";
 
 const CandidateProfile: React.FC<{

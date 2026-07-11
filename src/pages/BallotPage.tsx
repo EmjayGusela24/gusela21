@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import { Student, Candidate, Page, POSITIONS } from "../types";
-import { generateInitialsAvatar } from "../utils/imageUtils";
 import { CandidatePhoto } from "../components/CandidatePhoto";
 import { CountdownTimer } from "../components/CountdownTimer";
 import "./BallotPage.css";

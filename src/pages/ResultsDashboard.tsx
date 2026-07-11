@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import type { Candidate, User, Page } from "../types";
-import { generateInitialsAvatar } from "../utils/imageUtils";
 import { CandidatePhoto } from "../components/CandidatePhoto";
 import ReturnButton from "../components/ReturnButton";
 import "./ResultsDashboard.css";

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { supabase } from "../supabase";
 import { Page } from "../types";
 import ReturnButton from "../components/ReturnButton";
-import { fileToByteaHex, fileToDataUrl, base64ToImageUrl } from "../utils/imageUtils";
+import { fileToByteaHex, fileToDataUrl } from "../utils/imageUtils";
 import "./AdminRegister.css";
 
 
