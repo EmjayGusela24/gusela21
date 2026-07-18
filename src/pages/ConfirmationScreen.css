@@ -1,0 +1,17 @@
+/* ConfirmationScreen Page Styles */
+
+.success-icon-bg {
+  width: 60px;
+  height: 60px;
+  background: #E6F8F3;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px auto;
+}
+
+.success-icon {
+  color: var(--accent-teal);
+  font-size: 32px;
+}

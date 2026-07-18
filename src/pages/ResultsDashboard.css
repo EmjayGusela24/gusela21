@@ -1,0 +1,140 @@
+/* ResultsDashboard Page Styles */
+
+/* ====================== STAT GRID & BOXES ====================== */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat-box {
+  padding: 20px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+}
+
+.dark-box {
+  background: var(--primary-navy);
+  color: white;
+}
+
+.watermark-icon {
+  position: absolute;
+  right: -10px;
+  bottom: -15px;
+  font-size: 80px;
+  color: rgba(255, 255, 255, 0.05);
+  pointer-events: none;
+}
+
+.stat-box.light {
+  background: var(--bg-main);
+  border: 1px solid var(--border-light);
+}
+
+/* ====================== RESULT LIST ITEMS ====================== */
+.result-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.result-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+}
+
+.result-bar-bg {
+  height: 8px;
+  background: var(--border-light);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.result-bar-fill {
+  height: 100%;
+  background: var(--primary-navy);
+  border-radius: 4px;
+  transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ====================== LIVE BADGE & INDICATORS ====================== */
+.live-dot {
+  width: 6px;
+  height: 6px;
+  background: #D92D20;
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulse 2s infinite;
+}
+
+.badge-cyan {
+  background: #E6F8F3;
+  color: #027A48;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ====================== MOBILE TUNING ====================== */
+@media (max-width: 768px) {
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .result-item {
+    gap: 12px;
+  }
+
+  .result-avatar {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* ====================== LANDSCAPE LAYOUT ====================== */
+.admin-landscape-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .admin-landscape-layout {
+    grid-template-columns: 320px 1fr;
+  }
+}
+
+.admin-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-main-content {
+  min-width: 0;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 1200px) {
+  .results-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+

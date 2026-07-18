@@ -1,0 +1,60 @@
+/* Make the admin voters table usable on mobile */
+.admin-voters-table thead {
+  display: table-header-group;
+}
+
+@media (max-width: 640px) {
+  .admin-voters-table {
+    border-collapse: collapse;
+  }
+
+  .admin-voters-table thead {
+    display: none;
+  }
+
+  .admin-voters-table tbody tr {
+    display: block;
+    border-bottom: 1px solid var(--border-light);
+    padding: 12px 0;
+  }
+
+  .admin-voters-table tbody td {
+    display: block;
+    padding: 6px 10px !important;
+    border: none !important;
+  }
+
+  .admin-voters-table tbody td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+}
+
+/* ====================== LANDSCAPE LAYOUT ====================== */
+.admin-landscape-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .admin-landscape-layout {
+    grid-template-columns: 320px 1fr;
+  }
+}
+
+.admin-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-main-content {
+  min-width: 0;
+}
+

@@ -1,0 +1,503 @@
+/* ==========================================================================
+   1. GLOBAL ARCHITECTURE, BACKGROUND ORBITS & FLOATING PHOTOS
+   ========================================================================== */
+
+:root {
+  --primary-navy: #0B1736;
+  --secondary-navy: #1E2B4F;
+  --bg-gray: #F8FAFC;
+}
+
+.auth-screen-container {
+  position: relative;
+}
+
+/* ULTRA COMPACT: Made background decorative asset tiny and subtle */
+.auth-screen-container::before {
+  content: "";
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  left: 30px;
+  top: 30px;
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes spin-clockwise {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes counter-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+/* Hard constraints to keep all orbiting background objects miniature */
+.animate-orbit {
+  animation: spin-clockwise 45s linear infinite;
+  max-width: 80px;
+}
+
+.animate-counter-orbit {
+  animation: counter-spin 45s linear infinite;
+  max-width: 80px;
+}
+
+
+/* ==========================================================================
+   2. SPLIT-SCREEN CONTAINER (GLOBAL WRAPPER)
+   ========================================================================== */
+
+.split-login-container {
+  display: flex;
+  flex-direction: row;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative; /* REQUIRED: Anchor boundary for absolute children */
+}
+
+
+/* ==========================================================================
+   3. WEB VIEWPORTS (SLIM OVERLAY DRAWER SCREEN)
+   ========================================================================== */
+
+/* Left Side: Login Form Layout */
+.login-form-side {
+  flex: 1 1 auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 10;
+  padding: 40px 24px;
+  overflow-y: auto;
+  background: var(--bg-gray);
+  transition: flex 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Right Side: Showcase Hidden Default State */
+.candidate-showcase-side {
+  flex: 0 0 0px;
+  width: 0px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  position: relative;
+  z-index: 100;
+  padding: 0;
+  overflow: hidden;
+  border-left: none;
+  background: radial-gradient(ellipse at 60% 40%, #1E2B4F 0%, #0B1736 100%);
+  color: white;
+  box-shadow: none;
+  opacity: 0;
+  transition:
+    flex 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.25s ease,
+    padding 0.35s ease;
+}
+
+/* Open desktop tray margin */
+.candidate-showcase-side.open {
+  flex: 0 0 360px;
+  width: 360px;
+  padding: 20px 16px;
+  overflow-y: auto;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: -6px 0 30px rgba(11, 23, 54, 0.35);
+  opacity: 1;
+}
+
+.candidate-showcase-side.open::-webkit-scrollbar {
+  width: 4px;
+}
+
+.candidate-showcase-side.open::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+/* Floating Window Toggle Handle Trigger */
+.tab-trigger-handle {
+  position: absolute; /* FIXED: Keeps trigger snapped exactly alongside sliding panel boundaries */
+  top: 50%;
+  right: 0px;
+  z-index: 980;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 28px;
+  padding: 16px 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  background: var(--primary-navy);
+  color: white !important;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  text-orient: mixed;
+  cursor: pointer;
+  box-shadow: -3px 0 10px rgba(0, 0, 0, 0.18);
+  transform: translateY(-50%);
+  transition:
+    right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.tab-trigger-handle:hover {
+  background: var(--secondary-navy);
+  box-shadow: -4px 0 14px rgba(0, 0, 0, 0.25);
+}
+
+.tab-trigger-handle span {
+  color: white !important;
+}
+
+/* Snap handle position tightly back to match the open 360px layout mark */
+.tab-trigger-handle.panel-open {
+  right: 360px;
+  box-shadow: -3px 0 10px rgba(0, 0, 0, 0.12);
+}
+
+@media (max-width: 1024px) {
+  .auth-screen-container::before {
+    width: 100px;
+    height: 100px;
+    left: 15px;
+    top: 15px;
+    opacity: 0.05;
+  }
+}
+
+
+/* ==========================================================================
+   4. MOBILE VIEWPORTS & DRAWER LAYOUT OVERRIDES (<768px)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .auth-screen-container::before {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .split-login-container {
+    height: 100dvh;
+  }
+
+  .drawer-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(11, 23, 54, 0.55);
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .drawer-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Keeps mobile drawer behavior cleanly over top */
+  .candidate-showcase-side {
+    position: fixed !important;
+    top: 0;
+    right: 0;
+    z-index: 1000;
+    flex: none !important;
+    width: 85vw !important;
+    max-width: 320px;
+    height: 100% !important;
+    padding: 16px 12px !important;
+    overflow-y: auto !important;
+    border-left: none !important;
+    border-radius: 0 !important;
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.25);
+    opacity: 1 !important;
+    transform: translateX(105%);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .candidate-showcase-side.open {
+    flex: none !important;
+    width: 85vw !important;
+    max-width: 320px !important;
+    transform: translateX(0) !important;
+  }
+
+  /* On small mobile breakpoints, snap the toggle handle flush with screen rim */
+.tab-trigger-handle {
+    position: fixed !important;
+    right: 0 !important;
+  }
+
+  .tab-trigger-handle.panel-open {
+    /* Align the handle with the sliding drawer edge on mobile */
+    right: min(85vw, 320px) !important;
+  }
+}
+
+
+/* ==========================================================================
+   5. SHOWCASE INTERNAL COMPONENTS (HEADERS, TOGGLES, SCROLL TABS)
+   ========================================================================== */
+
+.showcase-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 20;
+  margin-bottom: 14px;
+}
+
+.showcase-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  color: white !important;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.style-toggle-group {
+  display: flex;
+  padding: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.style-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 7px;
+  border: none;
+  border-radius: 16px;
+  background: transparent;
+  color: #94A3B8;
+  font-size: 9.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.style-toggle-btn.active {
+  background: white;
+  color: var(--primary-navy);
+}
+
+.pos-tabs-scroll {
+  display: flex;
+  gap: 5px;
+  position: relative;
+  z-index: 20;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.pos-tabs-scroll::-webkit-scrollbar {
+  height: 3px;
+}
+
+.pos-tabs-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+.pos-tab-btn {
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #E2E8F0;
+  font-size: 9.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pos-tab-btn.active {
+  border-color: #3B82F6;
+  background: #3B82F6;
+  color: white;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.2);
+}
+
+
+/* ==========================================================================
+   6. CARD SUB-LAYOUTS (BALANCED GRID/LIST SIZING)
+   ========================================================================== */
+
+/* --- Sub-layout A: Grid System --- */
+.tab-candidate-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  position: relative;
+  z-index: 20;
+  flex: 1;
+  max-height: calc(100vh - 170px);
+  padding-right: 2px;
+  overflow-y: auto;
+}
+
+.tab-candidate-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  text-align: center;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tab-candidate-card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+  transform: translateY(-1px);
+}
+
+.tab-candidate-card img {
+  display: block;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.tab-candidate-name {
+  width: 100%;
+  margin-bottom: 2px;
+  overflow: hidden;
+  color: white !important;
+  font-weight: 700;
+  font-size: 12.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tab-candidate-party {
+  width: 100%;
+  overflow: hidden;
+  color: #94A3B8 !important;
+  font-size: 10px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tab-candidate-campaign {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  margin-top: 6px;
+  overflow: hidden;
+  color: #CBD5E1 !important;
+  font-size: 10px;
+  line-height: 1.3;
+  font-style: italic;
+}
+
+/* --- Sub-layout B: Bookmark Horizontal List --- */
+.bookmark-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: calc(100vh - 170px);
+  overflow-y: auto;
+}
+
+.bookmark-candidate-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
+}
+
+.bookmark-candidate-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(2px);
+}
+
+.bookmark-candidate-card img {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.bookmark-candidate-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.bookmark-candidate-name {
+  margin-bottom: 2px;
+  overflow: hidden;
+  color: white !important;
+  font-weight: 700;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bookmark-candidate-party {
+  color: #94A3B8 !important;
+  font-size: 10.5px;
+}
+
+/* Authentication wrapper layout properties */
+.auth-wrapper {
+  width: 100%;
+  max-width: 400px;
+  margin: auto;
+  background: var(--bg-main);
+  padding: 30px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+}
+
+@media (min-width: 768px) {
+  .auth-wrapper {
+    margin: auto;
+  }
+}
